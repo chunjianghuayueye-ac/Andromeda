@@ -1,9 +1,9 @@
-#ifndef ENGINE_GRAPHICS_SHADER_SHADERPROGRAM
-#define ENGINE_GRAPHICS_SHADER_SHADERPROGRAM
+#ifndef ANDROMEDA_GRAPHICS_SHADER_SHADERPROGRAM
+#define ANDROMEDA_GRAPHICS_SHADER_SHADERPROGRAM
 
 #include <GL/gl.h>
 
-namespace engine{
+namespace andromeda{
 	namespace graphics{
 		class ShaderProgram
 		{
@@ -16,4 +16,4 @@ namespace engine{
 	}
 }
 
-#endif //ENGINE_GRAPHICS_SHADER_SHADERPROGRAM
+#endif //ANDROMEDA_GRAPHICS_SHADER_SHADERPROGRAM

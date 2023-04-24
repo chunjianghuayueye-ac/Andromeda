@@ -9,45 +9,46 @@ namespace andromeda {
 	namespace app {
 		class Application
 		{
-			private:
-				Window window;
-				bool isRunning=false;
+		private:
+			Window window;
+			bool isRunning=false;
 
-			protected:
-				void initialize();
-				void terminate();
-				void update();
-			public:
-				Application();
+		protected:
+			void initialize();
+			void terminate();
+			void update();
+		public:
+			Application();
 
-				void launch();
-				void launchAsync();
+			void launch();
+			void launchAsync();
 
-				void exit();
+			void exit();
 
-				inline int getWindowHeight(void)
-				{
-					return window.getHeight();
-				}
+			inline int getWindowHeight(void)
+			{
+				return window.getHeight();
+			}
 
-				inline int getWindowWidth(void)
-				{
-					return window.getWidth();
-				}
+			inline int getWindowWidth(void)
+			{
+				return window.getWidth();
+			}
 
-				inline bool isFullScreen(void)
-				{
-					return window.isWindowFullScreen();
-				}
+			inline bool isFullScreen(void)
+			{
+				return window.isWindowFullScreen();
+			}
 
-				inline void setFullScreen(bool isFullScreen){
-					window.setFullScreen(isFullScreen);
-				}
+			inline void setFullScreen(bool isFullScreen)
+			{
+				window.setFullScreen(isFullScreen);
+			}
 
-				inline void setWindowSize(int width,int height)
-				{
-					window.setWindowSize(width,height);
-				}
+			inline void setWindowSize(int width,int height)
+			{
+				window.setWindowSize(width,height);
+			}
 		};
 	}
 }

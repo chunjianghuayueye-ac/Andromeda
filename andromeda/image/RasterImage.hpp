@@ -1,45 +1,60 @@
-#ifndef ANM2DR_IMAGE_RASTERIMAGE
-#define ANM2DR_IMAGE_RASTERIMAGE
+#ifndef ANDROMEDA_IMAGE_RASTERIMAGE
+#define ANDROMEDA_IMAGE_RASTERIMAGE
 
 #include "Pixel.hpp"
+#include "imageUtils.hpp"
+#include <malloc.h>
 
 namespace andromeda {
 	namespace image {
 		class RasterImage
 		{
+		public:
+			int height,width;
 
-				friend RasterImage& anm2dr::image::readImage(const char* image_path);
-				friend void anm2dr::image::writeImage(const char* image_path,RasterImage& image);
+			RasterImage(int img_width=0,int img_height=0,Pixel* data=(Pixel*)malloc(0));
 
-			public:
-				int height,width;
+			static RasterImage& readImage(const char* image_path);
+			void writeImage(const char* image_path);
 
-				RasterImage(int img_width=0,int img_height=0,Pixel* data=malloc(0));
+			RasterImage copyRasterImage();
 
-				RasterImage copyRasterImage();
+			Pixel* getPixelDataPtr()
+			{
+				return pixels;
+			}
 
-				Pixel* getPixelDataPtr();
-				void setPixelData(Pixel* data,int img_width,int img_height,image_size_options op);
-				Pixel& getPixel(int x,int y);
-				void setPixel(int x,int y,Pixel new_pixel);
-				void setPixel(int x,int y,RefPixel new_pixel);
-				void allocate();
-				static RasterImage& fromFile(const char* path);
+			void allocate();
 
-				RefPixel getRefPixel(int x,int y);
+			void setPixel(int x,int y,Pixel new_pixel)
+			{
+				*(Pixel*)(pixels+width*y+x)=new_pixel;
+			}
 
-				//Operations
-				void fillRect(int start_x,int start_y,int end_x,int end_y,Pixel pixel);
-				void fillAll(Pixel pixel);
+			void setPixel(int x,int y,color::ColorRGBA new_pixel_color)
+			{
+				*(Pixel*)(pixels+width*y+x)=new_pixel_color.toPixel();
+			}
 
-				void mix(RasterImage &img,int pos_x,int pos_y);
-				void mulAlphaFactor(float factor);
+			inline Pixel& getPixel(int x,int y)
+			{
+				return *(pixels+width*y+x);
+			}
 
-				static RasterImage& cutImage(RasterImage& src_img,int start_x,int start_y,int end_x,int end_y);
-			protected:
-				Pixel* pixels;
+			//Operations
+			void fillRect(int start_x,int start_y,int end_x,int end_y,Pixel pixel);
+			void fillAll(Pixel pixel);
+
+			void mix(RasterImage &img,int pos_x,int pos_y);
+			void mulAlphaFactor(float factor);
+
+			static RasterImage& cutImage(RasterImage& src_img,int start_x,int start_y,int end_x,int end_y);
+
+			void setPixelData(Pixel* data,int img_width,int img_height,image_size_options op); //设置某个区域的图像，将覆盖区域原本的数据
+		protected:
+			Pixel* pixels;
 		};
 	}
 }
 
-#endif // ANM2DR_IMAGE_RASTERIMAGE
+#endif // ANDROMEDA_IMAGE_RASTERIMAGE

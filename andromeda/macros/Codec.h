@@ -1,5 +1,5 @@
-#ifndef ANM2DR_MACROS_CODEC
-#define ANM2DR_MACROS_CODEC
+#ifndef ANDROMEDA_MACROS_CODEC
+#define ANDROMEDA_MACROS_CODEC
 
 #define set_property(obj,key,val) obj->properties->key=val
 
@@ -110,4 +110,4 @@
             }\
         }
 
-#endif // ANM2DR_MACROS_CODEC
+#endif //ANDROMEDA_MACROS_CODEC

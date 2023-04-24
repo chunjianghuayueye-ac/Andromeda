@@ -1,5 +1,5 @@
-#ifndef ANM2DR_MACROS_MATH
-#define ANM2DR_MACROS_MATH
+#ifndef ANDROMEDA_MACROS_MATH
+#define ANDROMEDA_MACROS_MATH
 
 #include <math.h>
 
@@ -26,4 +26,4 @@
 #define getPixelChrominaceInt(i) (i<-127.5?-127.5:(i>127.5?127.5:i))
 #define getPixelChrominaceFloat(f) (f<-0.5?-0.5:(f>0.5?0.5:f))
 
-#endif // ANM2DR_MACROS_MATH
+#endif // ANDROMEDA_MACROS_MATH

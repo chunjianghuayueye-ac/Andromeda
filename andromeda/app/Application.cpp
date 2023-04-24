@@ -5,7 +5,8 @@ using namespace andromeda::app;
 
 Application::Application()
 {
-	Init_OpenGL:{
+	Init_OpenGL:
+	{
 		glfwInit();
 		gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR,3);
@@ -17,7 +18,6 @@ Application::Application()
 
 void Application::initialize()
 {
-
 
 }
 
@@ -50,6 +50,6 @@ void Application::exit()
 
 void Application::launchAsync()
 {/*
-	thread=new std::thread(launch);
-	thread->detach();*/
+ thread=new std::thread(launch);
+ thread->detach();*/
 }

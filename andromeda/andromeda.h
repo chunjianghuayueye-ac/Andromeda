@@ -1,13 +1,12 @@
-#ifndef ANM2DR
-#define ANM2DR
+#ifndef ANDROMEDA
+#define ANDROMEDA
 
 #include "macros/macros.h"
-#include "color/color.h"
+#include "image/color/color.h"
 #include "image/image.h"
 #include "util/util.h"
 #include "audio/audio.h"
-#include "video/video.h"
+#include "media/media.h"
 #include "font/font.h"
-#include "render/render.h"
 
-#endif // ANM2DR
+#endif // ANDROMEDA

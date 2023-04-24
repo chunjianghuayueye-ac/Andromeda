@@ -1,4 +1,4 @@
 #include "ShaderProgram.hpp"
 
-using namespace engine::graphics;
+using namespace andromeda::graphics;
 

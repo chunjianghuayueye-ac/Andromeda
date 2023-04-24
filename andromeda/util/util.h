@@ -1,11 +1,10 @@
-#ifndef ANM2DR_UTIL
-#define ANM2DR_UTIL
+#ifndef ANDROMEDA_UTIL
+#define ANDROMEDA_UTIL
 
 #include "Utils.hpp"
 #include "LinkedChunkBuffer.hpp"
-#include "RefcPointer.hpp"
-#include "CStringUtils.hpp"
+#include "Utils.hpp"
 #include "ArrayList.hpp"
 
-#endif // ANM2DR_UTIL
+#endif // ANDROMEDA_UTIL
 

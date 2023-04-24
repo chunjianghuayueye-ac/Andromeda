@@ -1,5 +1,5 @@
-#ifndef ANM2DR_MACROS
-#define ANM2DR_MACROS
+#ifndef ANDROMEDA_MACROS
+#define ANDROMEDA_MACROS
 
 #include "Math.h"
 #include "AudioProcess.h"
@@ -7,4 +7,4 @@
 #include "ImageProcess.h"
 #include "Utils.h"
 
-#endif // ANM2DR_UTIL_MACROS
+#endif // ANDROMEDA_UTIL_MACROS

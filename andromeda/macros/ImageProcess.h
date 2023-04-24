@@ -1,5 +1,5 @@
-#ifndef ANM2DR_MACROS_IMAGEPROCESS
-#define ANM2DR_MACROS_IMAGEPROCESS
+#ifndef ANDROMEDA_MACROS_IMAGEPROCESS
+#define ANDROMEDA_MACROS_IMAGEPROCESS
 
 #define getPixelChannelFromBytePtr(ptr,cnl) ((int)((Pixel*)ptr)->cnl)
 
@@ -140,4 +140,4 @@
             dest_img.getPixel(absolute_x,absolute_y).setRGBA(r,g,b,a);\
         }
 
-#endif // ANM2DR_MACROS_IMAGEPROCESS
+#endif // ANDROMEDA_MACROS_IMAGEPROCESS
