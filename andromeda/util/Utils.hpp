@@ -12,6 +12,11 @@ namespace andromeda {
 		extern const char* str_join(const char* str1,char ch);
 		extern const char* str_join(char ch,const char* str1);
 
+		__attribute__((always_inline)) const char* str_join(const char* str)
+		{
+			return str;
+		}
+
 		template<typename T>
 		__attribute__((always_inline)) void* memasgn(void* ptr,T &&value)
 		{
