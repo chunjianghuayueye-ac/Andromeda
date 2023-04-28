@@ -18,9 +18,9 @@ __attribute__((constructor)) void _init_lib()
 	if(use_opengl)
 	{
 		if(!glfwInit())
-			PRINT_MESSAGE("Initialize GLFW failed.");
+			PRINT_MESSAGE("Initialize GLFW failed.")
 		if(!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-			PRINT_MESSAGE("Initialize GLAD failed.");
+			PRINT_MESSAGE("Initialize GLAD failed.")
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR,3);
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR,3);
 		glfwWindowHint(GLFW_OPENGL_PROFILE,GLFW_OPENGL_CORE_PROFILE);
@@ -29,7 +29,7 @@ __attribute__((constructor)) void _init_lib()
 	{
 		auto err=Pa_Initialize();
 		if(err!=paNoError)
-			PRINT_MESSAGE("Initialize PortAudio failed. Error: ",Pa_GetErrorText(err));
+			PRINT_MESSAGE("Initialize PortAudio failed. Error: ",Pa_GetErrorText(err))
 	}
 }
 

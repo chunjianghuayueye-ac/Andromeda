@@ -34,6 +34,11 @@ namespace andromeda {
 		}
 		const char* int_to_string_dec(int num);
 
+		template<typename T1>
+		const char* str_join(T1 str1)
+		{
+			return str_join(str1);
+		}
 		template<typename T1,typename T2>
 		const char* str_join(T1 str1,T2 str2)
 		{

@@ -5,6 +5,7 @@
 #include "../../lib/opengl/GLFW/glfw3.h"
 #include "Window.hpp"
 #include "FrameRate.hpp"
+#include "../util/Thread.hpp"
 
 namespace andromeda {
 	namespace app {
@@ -14,12 +15,28 @@ namespace andromeda {
 		private:
 			Window window;
 			FrameRate frameRate;
-			bool isRunning=false;
+			std::atomic_bool isRunning=false;
+			andromeda::util::Thread<void()> appMainLoopThread;
 
 			void _initialize() //内部使用的初始化函数
 			{
 
 				initialize();
+			}
+
+			void _loop() //多线程执行的主函数，此函数将循环执行
+			{
+				if(isRunning)
+				{
+					glClear(GL_COLOR_BUFFER_BIT);
+					update(frameRate.get_tpf());
+					_render();
+					glfwSwapBuffers(window);
+					glfwPollEvents();
+					frameRate.calc();
+				}
+				else
+					appMainLoopThread.stop();
 			}
 
 			void _render()
@@ -45,6 +62,7 @@ namespace andromeda {
 			{
 				(Derived*)this->update(tpf);
 			}
+
 		public:
 			Application(const char* window_title=nullptr)
 			{
@@ -56,30 +74,13 @@ namespace andromeda {
 				}
 				if(!andromeda::use_portaudio)
 				{
-					PRINT_MESSAGE("OpenGL is not used. Please set andromeda::use_portaudio to true.")
+					PRINT_MESSAGE("PortAudio is not used. Please set andromeda::use_portaudio to true.")
 					init_app=false;
 				}
 				if(!init_app)
 					return;
 				new (this) Window(window_title?window_title:"Andromeda Application");
-			}
-
-			void launch()
-			{
-				isRunning=true;
-				_initialize();
-				glfwMakeContextCurrent(window);
-				frameRate.init();
-				while(isRunning)
-				{
-					glClear(GL_COLOR_BUFFER_BIT);
-					update(frameRate.get_tpf());
-					_render();
-					glfwSwapBuffers(window);
-					glfwPollEvents();
-					frameRate.calc();
-				}
-				_terminate();
+				appMainLoopThread.setThreadCallable(_loop,true);
 			}
 
 			void exit()
@@ -87,7 +88,18 @@ namespace andromeda {
 				isRunning=false;
 			}
 
-			void launchAsync();
+			void launch(bool blocked=true) //blocked=true时，则直到Application线程执行完毕后才执行之后的代码
+			{
+				if(blocked)
+					appMainLoopThread.setThreadWorkMode(andromeda::util::ThreadWorkMode::Join);
+				isRunning=true;
+				_initialize();
+				glfwMakeContextCurrent(window);
+				frameRate.init();
+				appMainLoopThread.start(); //Application的主线程开启后，程序的主线程就休眠直到isRunning=false
+				std::this_thread;
+				_terminate();
+			}
 
 			inline int getFPS()
 			{
@@ -118,7 +130,8 @@ namespace andromeda {
 			{
 				window.setWindowSize(width,height);
 			}
-		};
+		}
+		;
 	}
 }
 

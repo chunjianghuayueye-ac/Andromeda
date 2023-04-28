@@ -36,10 +36,10 @@ void FrameRate::calc()
 		{
 			double sleep_time=tpf_limit-tpf;
 			if(sleep_time>0)
-				std::this_thread::sleep_for(nanoseconds(sleep_time*1E9));
+				std::this_thread::sleep_for(nanoseconds((int)(sleep_time*1E9)));
 		}
 		else
-			std::this_thread::suspend(); //fps限制为0则挂起线程
+			std::this_thread::sleep_for(seconds(0xFFFFFFFF)); //fps限制为0则挂起线程
 	}
 	delta_t+=tpf;
 	if(delta_t>=1)
