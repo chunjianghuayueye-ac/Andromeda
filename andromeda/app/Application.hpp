@@ -5,7 +5,7 @@
 #include "../../lib/opengl/GLFW/glfw3.h"
 #include "Window.hpp"
 #include "FrameRate.hpp"
-#include "../util/Thread.hpp"
+#include "MainLoopThread.hpp"
 
 namespace andromeda {
 	namespace app {
@@ -16,7 +16,7 @@ namespace andromeda {
 			Window window;
 			FrameRate frameRate;
 			std::atomic_bool isRunning=false;
-			andromeda::util::Thread<void()> appMainLoopThread;
+			MainLoopThread<Derived>* appMainLoopThread=nullptr;
 
 			void _initialize() //内部使用的初始化函数
 			{
@@ -80,6 +80,7 @@ namespace andromeda {
 				if(!init_app)
 					return;
 				new (this) Window(window_title?window_title:"Andromeda Application");
+				appMainLoopThread=new MainLoopThread<Derived>(this);
 				appMainLoopThread.setThreadCallable(_loop,true);
 			}
 
@@ -93,12 +94,8 @@ namespace andromeda {
 				if(blocked)
 					appMainLoopThread.setThreadWorkMode(andromeda::util::ThreadWorkMode::Join);
 				isRunning=true;
-				_initialize();
 				glfwMakeContextCurrent(window);
-				frameRate.init();
-				appMainLoopThread.start(); //Application的主线程开启后，程序的主线程就休眠直到isRunning=false
-				std::this_thread;
-				_terminate();
+				appMainLoopThread.start(); //Application的主线程开启后，如果设置了blocked=true则程序的主线程就休眠直到isRunning=false
 			}
 
 			inline int getFPS()
