@@ -19,31 +19,51 @@ namespace andromeda {
 		{
 			static const bool result=true;
 		};
+		//将成员函数指针退化为等效的普通函数指针
+		template<typename Func>
+		struct __degenerate_func_impl
+		{
+			typedef Func result_type;
+			typedef void class_type;
+		};
+
+		template<typename Class,typename Func>
+		struct __degenerate_func_impl<Func Class::*>
+		{
+			typedef Func result_type;
+			typedef Class class_type;
+		};
+
+		template<typename Func>
+		struct degenerate_func:public __degenerate_func_impl<Func>
+		{
+			using __degenerate_func_impl<Func>::result_type;
+			using __degenerate_func_impl<Func>::class_type;
+		};
 		//得到普通函数或成员函数的返回类型，Func必须为普通函数，Class为函数所属类(实际上是依靠Func判断是否为成员函数，只有Func为成员函数时Class参数才有用)，Args必须显示指定。可以配合bind_this使用，用于取得RetType
-		template<bool IsMemFunc,typename Class,typename Func,typename ...Args>
+		//传入成员函数指针类型时必须写成&Class::Func，而不能写成ClassObj.Func，因为后者中子类可以重载父类的Func函数，导致decltype无法推断成员函数的类型。由于是模拟调用，成员函数必须是外部可以调用的函数，即不能声明为private或protected
+		template<typename Func,typename ...Args>
 		struct __get_func_ret_type_impl
 		{
+			typedef decltype(std::declval<std::function<Func> >()(std::declval<Args>()...)) result_type;
+			typedef void class_type;//函数所属的类
 		};
 
 		template<typename Class,typename Func,typename ...Args>
-		struct __get_func_ret_type_impl<true,Class,Func,Args...>
+		struct __get_func_ret_type_impl<Func Class::*,Args...>
 		{
-			typedef decltype((std::declval<Class>().*std::declval<Func>())(std::declval<Args>()...)) result_type;
+			typedef decltype((std::declval<Class>().*std::declval<Func Class::*>())(std::declval<Args>()...)) result_type;
+			typedef Class class_type;//函数所属的类
 		};
 
-		template<typename Class,typename Func,typename ...Args>
-		struct __get_func_ret_type_impl<false,Class,Func,Args...>
+		template<typename Func,typename ...Args>
+		struct get_func_ret_type:public __get_func_ret_type_impl<Func,Args...>
 		{
-			typedef decltype(std::function<Func>()(std::declval<Args>()...)) result_type;
+			using __get_func_ret_type_impl<Func,Args...>::result_type;
+			using __get_func_ret_type_impl<Func,Args...>::class_type;
 		};
 
-		template<typename Class,typename Func,typename ...Args>
-		struct get_func_ret_type:public __get_func_ret_type_impl<std::is_member_function_pointer<Func>::value,Class,Func,Args...>
-		{
-			using __get_func_ret_type_impl<std::is_member_function_pointer<Func>::value,Class,Func,Args...>::result_type;
-		};
-
-		//得到函数指针的类型，Class=void则视作普通函数类型，否则视作成员函数类型，函数类型转函数指针使用std::decay
+		//包装返回值、参数、所属类以得到函数指针的类型，Class=void则视作普通函数类型，否则视作成员函数类型，函数类型转函数指针使用std::decay
 		template<typename Class,typename RetType,typename ... ArgsType>
 		struct func_type
 		{

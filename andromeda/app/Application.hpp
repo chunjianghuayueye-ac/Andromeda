@@ -79,9 +79,11 @@ namespace andromeda {
 					init_app=false;
 				}
 				if(!init_app)
+				{
 					PRINT_MESSAGE("Application not initialized.")
-				return;
-				new (this) Window(window_title?window_title:"Andromeda Application");
+					return;
+				}
+				new (this) Window(window_title?window_title:"Andromeda Application"); //≥ı ºªØwindow
 				appMainLoopThread=new MainLoopThread<Derived>((Derived*)this);
 			}
 

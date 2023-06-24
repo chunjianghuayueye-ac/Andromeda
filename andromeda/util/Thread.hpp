@@ -9,7 +9,7 @@
 
 #include "../tmp/Types.h"
 
-//THREAD宏只能用于非成员函数
+//THREAD宏可用于任何Callable，但不可用func参数不能传入ClassObj.Func，因为decltype无法解析可能的重载函数
 #define THREAD(obj_name,func) andromeda::util::Thread<decltype(func)> obj_name(func)
 
 namespace andromeda {
@@ -30,9 +30,11 @@ namespace andromeda {
 			thread->exit();
 		}
 
-		template<typename Callable,typename Derived=void> //Callable必须是非成员函数类型(如果是成员函数则传入等效的普通函数)，Derived用于继承时传入子类CRTP，若is_class<Derived>=false则表示不继承
+		template<typename Callable,typename Derived=void> //Callable为任何可调用对象（包括成员函数），Derived用于继承时传入子类CRTP，若is_class<Derived>=false则表示不继承
 		class Thread
 		{
+		public:
+			typedef typename andromeda::tmp::degenerate_func<Callable>::result_type DegeneratedCallableType;
 		private:
 			friend void exitThread<>(Thread<Callable,Derived>* thread);
 
@@ -44,7 +46,7 @@ namespace andromeda {
 			std::mutex _mutex;
 			std::condition_variable _condition;
 			void* _callable_obj; //储存原始的调用对象或函数指针
-			std::function<Callable> _callable; //用于实际执行的封装后的可调用对象
+			std::function<DegeneratedCallableType> _callable; //用于实际执行的封装后的可调用对象，Callable如果是成员函数则退化为等效的普通函数并绑定this
 			bool* loopFlag=nullptr; //循环控制变量，nullptr表示不循环执行
 			bool isCallableSet=false;
 			template<typename ...Args>
@@ -135,7 +137,7 @@ namespace andromeda {
 				shouldStop=false;
 			}
 			//isLoop设定是否循环执行运行函数。如果设定为false，则不可使用pause()、resume()、stop()，在执行运行函数期间只可执行exit()操作
-			template<typename MCallable=Callable> //MCallable可以为成员函数，此时需要传入cls
+			template<typename MCallable=Callable>
 			Thread(MCallable& op,bool* loopFlag=nullptr,ThreadWorkMode workState=Detach) :
 					Thread() //默认采用Detach模式
 			{
@@ -170,7 +172,7 @@ namespace andromeda {
 				return *this;
 			}
 
-			template<typename MCallable=Callable> //MCallable可以为成员函数
+			template<typename MCallable=Callable> //MCallable可以与Callable不同（例如Callable传入普通函数类型，MCallable传入等效成员函数类型或其他等效可调用类型），但最好保持一致
 			Thread& setThreadCallable(MCallable& op,bool* loopFlag=nullptr) //储存_callable_obj原始对象，而实际执行的_callable对象在start()中才会实例化
 			{
 				if(_thread) //如果线程已经存在，则强制结束线程并释放
@@ -180,6 +182,7 @@ namespace andromeda {
 				this->loopFlag=loopFlag;
 				return *this;
 			}
+
 			template<typename MCallable=Callable>
 			Thread& setThreadCallable(MCallable&& op,bool* loopFlag=nullptr)
 			{
@@ -200,7 +203,7 @@ namespace andromeda {
 			}
 
 			template<typename ...Args>
-			void start(Args&&... args) //普通函数调用
+			void start(Args&&... args) //非成员函数调用
 			{
 				if((!isCallableSet)||_thread) //没有设置运行函数，或已经调用了start()且不是处于Stopped状态就直接返回
 					return;
@@ -223,7 +226,7 @@ namespace andromeda {
 			{
 				if((!isCallableSet)||_thread) //没有设置运行函数，或已经调用了start()且不是处于Stopped状态就直接返回
 					return;
-				typedef typename andromeda::tmp::get_func_ret_type<Class,Callable,Args...>::result_type ret_type;
+				typedef typename andromeda::tmp::get_func_ret_type<Callable,Args...>::result_type ret_type;
 				_callable=andromeda::tmp::bind_this<Class,ret_type,Args...>::bind(*(typename andromeda::tmp::func_type<Class,ret_type,Args...>::result_type*)_callable_obj,cls); //为成员函数绑定this
 				_thread=new std::thread(std::bind(&Thread<Callable,Derived>::run<Args...>,this,args...));
 				_state=Running;
