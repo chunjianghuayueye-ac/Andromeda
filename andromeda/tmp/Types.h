@@ -85,6 +85,81 @@ namespace andromeda {
 		template<typename RetType,typename ... ArgsType>
 		bind_this<void,RetType,ArgsType...>bind_this<void,RetType,ArgsType...>::bind=bind_this<void,RetType,ArgsType...>();
 
+		//std::decay的拓展，可以得到指针、引用等的原本类型，即传入T*或T**甚至更高次数的指针可以得到T
+		template<bool IsPtr,typename T>
+		struct __get_type_impl
+		{
+		};
+
+		template<typename T>
+		struct __get_type_impl<true,T*>
+		{
+			typedef typename __get_type_impl<std::is_pointer<typename std::decay<T>::type>::value,typename std::decay<T>::type>::result_type result_type;
+		};
+
+		template<typename T>
+		struct __get_type_impl<false,T>
+		{
+			typedef typename std::decay<T>::type result_type;
+		};
+
+		template<typename T>
+		struct get_type:public __get_type_impl<std::is_pointer<typename std::decay<T>::type>::value,typename std::decay<T>::type>
+		{
+			typedef typename __get_type_impl<std::is_pointer<typename std::decay<T>::type>::value,typename std::decay<T>::type>::result_type result_type;
+		};
+
+		//判断是否是基础类型，如果是则结果为true，如果不是（是类）则返回false。可以传入指针、引用等，得到的依旧是原本类型
+		template<typename T>
+		struct __is_basic_type_impl
+		{
+			static const bool result=false;
+		};
+
+#define	IS_BASIC_TYPE(T)	template<>\
+							struct __is_basic_type_impl<T>\
+							{\
+								static const bool result=true;\
+							};
+		//8位
+		IS_BASIC_TYPE(char)
+		IS_BASIC_TYPE(unsigned char)
+		//16位
+		IS_BASIC_TYPE(short int)
+		IS_BASIC_TYPE(unsigned short int)
+		//32位
+		IS_BASIC_TYPE(int)
+		IS_BASIC_TYPE(unsigned int)
+		//32位
+		IS_BASIC_TYPE(long int)
+		IS_BASIC_TYPE(unsigned long int)
+		//64位
+		IS_BASIC_TYPE(long long int)
+		IS_BASIC_TYPE(unsigned long long int)
+		//32位
+		IS_BASIC_TYPE(float)
+		//64位
+		IS_BASIC_TYPE(double)
+		//64位
+		IS_BASIC_TYPE(long double)
+		//32位
+		IS_BASIC_TYPE(bool)
+		//void类型
+		IS_BASIC_TYPE(void)
+
+#undef IS_BASIC_TYPE
+
+		template<typename T>
+		struct is_basic_type:public __is_basic_type_impl<typename get_type<T>::result_type>
+		{
+			using __is_basic_type_impl<typename get_type<T>::result_type>::result;
+		};
+		//判断T是否是类，结果实际上为!(is_basic_type<T>)
+		template<typename T>
+		struct is_class
+		{
+			static const bool result=!is_basic_type<T>::result;
+		};
 	}
 }
 

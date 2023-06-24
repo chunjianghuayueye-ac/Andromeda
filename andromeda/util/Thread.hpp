@@ -9,6 +9,7 @@
 
 #include "../tmp/Types.h"
 
+//THREAD宏只能用于非成员函数
 #define THREAD(obj_name,func) andromeda::util::Thread<decltype(func)> obj_name(func)
 
 namespace andromeda {
@@ -29,7 +30,7 @@ namespace andromeda {
 			thread->exit();
 		}
 
-		template<typename Callable,typename Derived=void> //Callable必须是非成员函数类型(如果是成员函数则传入等效的普通函数)，Derived用于继承时传入子类CRTP，若Derived=void则表示不继承
+		template<typename Callable,typename Derived=void> //Callable必须是非成员函数类型(如果是成员函数则传入等效的普通函数)，Derived用于继承时传入子类CRTP，若is_class<Derived>=false则表示不继承
 		class Thread
 		{
 		private:
@@ -79,48 +80,53 @@ namespace andromeda {
 			{
 				return loopFlag&&(*loopFlag);
 			}
-			/*initialize()的父类和子类模板参数不同
-			 * 父类：Thread<Callable,Derived<Callable>>::initialize()
-			 * 子类：Derived<Callable>::initialize()
-			 * */
+			//CRTP实现
 			void initialize() //执行函数执行之前调用一次
 			{
-				((Derived*)this)->initialize();
+				if(andromeda::tmp::is_class<Derived>::result)
+					((typename andromeda::tmp::_if<andromeda::tmp::is_class<Derived>::result,Derived,Thread<Callable,Derived>>::result_type*)this)->initialize();
 			}
 
 			void terminate() //执行函数（包括isLoop=true时的情况）结束后调用一次
 			{
-				((Derived*)this)->terminate();
+				if(andromeda::tmp::is_class<Derived>::result)
+					((typename andromeda::tmp::_if<andromeda::tmp::is_class<Derived>::result,Derived,Thread<Callable,Derived>>::result_type*)this)->terminate();
 			}
 
 			void before_stop() //每次成功调用stop()前调用一次
 			{
-				((Derived*)this)->before_stop();
+				if(andromeda::tmp::is_class<Derived>::result)
+					((typename andromeda::tmp::_if<andromeda::tmp::is_class<Derived>::result,Derived,Thread<Callable,Derived>>::result_type*)this)->before_stop();
 			}
 
 			void after_stop() //每次成功调用stop()后调用一次
 			{
-				((Derived*)this)->after_stop();
+				if(andromeda::tmp::is_class<Derived>::result)
+					((typename andromeda::tmp::_if<andromeda::tmp::is_class<Derived>::result,Derived,Thread<Callable,Derived>>::result_type*)this)->after_stop();
 			}
 
 			void before_suspended() //每次成功调用suspended()前调用一次
 			{
-				((Derived*)this)->before_suspended();
+				if(andromeda::tmp::is_class<Derived>::result)
+					((typename andromeda::tmp::_if<andromeda::tmp::is_class<Derived>::result,Derived,Thread<Callable,Derived>>::result_type*)this)->before_suspended();
 			}
 
 			void after_suspended() //每次成功调用suspended()后调用一次
 			{
-				((Derived*)this)->after_suspended();
+				if(andromeda::tmp::is_class<Derived>::result)
+					((typename andromeda::tmp::_if<andromeda::tmp::is_class<Derived>::result,Derived,Thread<Callable,Derived>>::result_type*)this)->after_suspended();
 			}
 
 			void before_resume() //每次成功调用resume()前调用一次
 			{
-				((Derived*)this)->before_resume();
+				if(andromeda::tmp::is_class<Derived>::result)
+					((typename andromeda::tmp::_if<andromeda::tmp::is_class<Derived>::result,Derived,Thread<Callable,Derived>>::result_type*)this)->before_resume();
 			}
 
 			void after_resume() //每次成功调用resume()后调用一次
 			{
-				((Derived*)this)->after_resume();
+				if(andromeda::tmp::is_class<Derived>::result)
+					((typename andromeda::tmp::_if<andromeda::tmp::is_class<Derived>::result,Derived,Thread<Callable,Derived>>::result_type*)this)->after_resume();
 			}
 		public:
 			Thread()
