@@ -1,6 +1,3 @@
-#ifndef ANDROMEDA
-#define ANDROMEDA
-
 #include "macros/Debug.h"
 #include "../lib/opengl/glad/glad.h"
 #include "../lib/opengl/GLFW/glfw3.h"
@@ -47,4 +44,3 @@ __attribute__((destructor)) void _term_lib()
 	}
 }
 
-#endif // ANDROMEDA

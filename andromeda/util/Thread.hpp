@@ -7,6 +7,10 @@
 #include <mutex>
 #include <condition_variable>
 
+#include "../tmp/Types.h"
+
+#define THREAD(obj_name,func) andromeda::util::Thread<decltype(func)> obj_name(func)
+
 namespace andromeda {
 	namespace util {
 		enum ThreadWorkMode
@@ -25,11 +29,11 @@ namespace andromeda {
 			thread->exit();
 		}
 
-		template<typename Callable,typename Derived=void> //Derived默认为空，继承本类时需要指定Derived为子类
+		template<typename Callable,typename Derived=void> //Callable必须是非成员函数类型(如果是成员函数则传入等效的普通函数)，Derived用于继承时传入子类CRTP，若Derived=void则表示不继承
 		class Thread
 		{
 		private:
-			friend void exitThread<>(Thread<Callable>* thread);
+			friend void exitThread<>(Thread<Callable,Derived>* thread);
 
 			std::thread* _thread=nullptr;
 			ThreadWorkMode _workState=Detach;
@@ -38,18 +42,17 @@ namespace andromeda {
 			std::atomic_bool shouldStop;
 			std::mutex _mutex;
 			std::condition_variable _condition;
-			std::function<Callable> _callable;
-			bool hasDerivedClass=false; //是否有子类
-			bool isLoop=false;
+			void* _callable_obj; //储存原始的调用对象或函数指针
+			std::function<Callable> _callable; //用于实际执行的封装后的可调用对象
+			bool* loopFlag=nullptr; //循环控制变量，nullptr表示不循环执行
 			bool isCallableSet=false;
-
 			template<typename ...Args>
 			void run(Args ...args) //非virtual类成员函数，其指针与通常函数指针不同
 			{
 				pthread_setcancelstate(PTHREAD_CANCEL_ENABLE,NULL); //允许退出线程
 				pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS,NULL); //收到CANCEL信号后立即退出线程
 				initialize();
-				if(isLoop)
+				if(isLoop())
 					while(!shouldStop)
 					{
 						_callable(args...); //isLoop=true时重复调用执行函数
@@ -71,71 +74,73 @@ namespace andromeda {
 				exit(); //正常结束后释放线程，此时可通过start()再次调用而不必重新setThreadCallable()
 			}
 
-			bool hasDerived() //判断是否有子类
-			{
-				return typeid(Derived)!=typeid(void);
-			}
-
 		protected:
+			inline bool isLoop()
+			{
+				return loopFlag&&(*loopFlag);
+			}
+			/*initialize()的父类和子类模板参数不同
+			 * 父类：Thread<Callable,Derived<Callable>>::initialize()
+			 * 子类：Derived<Callable>::initialize()
+			 * */
 			void initialize() //执行函数执行之前调用一次
 			{
-				if(hasDerivedClass)
-					(Derived*)this->initialize();
+				((Derived*)this)->initialize();
 			}
 
 			void terminate() //执行函数（包括isLoop=true时的情况）结束后调用一次
 			{
-				if(hasDerivedClass)
-					(Derived*)this->terminate();
+				((Derived*)this)->terminate();
 			}
 
 			void before_stop() //每次成功调用stop()前调用一次
 			{
-				if(hasDerivedClass)
-					(Derived*)this->before_stop();
+				((Derived*)this)->before_stop();
 			}
 
 			void after_stop() //每次成功调用stop()后调用一次
 			{
-				if(hasDerivedClass)
-					(Derived*)this->after_stop();
+				((Derived*)this)->after_stop();
 			}
 
 			void before_suspended() //每次成功调用suspended()前调用一次
 			{
-				if(hasDerivedClass)
-					(Derived*)this->before_suspended();
+				((Derived*)this)->before_suspended();
 			}
 
 			void after_suspended() //每次成功调用suspended()后调用一次
 			{
-				if(hasDerivedClass)
-					(Derived*)this->after_suspended();
+				((Derived*)this)->after_suspended();
 			}
 
 			void before_resume() //每次成功调用resume()前调用一次
 			{
-				if(hasDerivedClass)
-					(Derived*)this->before_resume();
+				((Derived*)this)->before_resume();
 			}
 
 			void after_resume() //每次成功调用resume()后调用一次
 			{
-				if(hasDerivedClass)
-					(Derived*)this->after_resume();
+				((Derived*)this)->after_resume();
 			}
 		public:
 			Thread()
 			{
 				shouldPause=false;
 				shouldStop=false;
-				hasDerivedClass=hasDerived();
 			}
 			//isLoop设定是否循环执行运行函数。如果设定为false，则不可使用pause()、resume()、stop()，在执行运行函数期间只可执行exit()操作
-			Thread(Callable&& op,bool isLoop=false,ThreadWorkMode workState=Detach) :
+			template<typename MCallable=Callable> //MCallable可以为成员函数，此时需要传入cls
+			Thread(MCallable& op,bool* loopFlag=nullptr,ThreadWorkMode workState=Detach) :
 					Thread() //默认采用Detach模式
 			{
-				setThreadCallable(op,isLoop);
+				setThreadCallable<MCallable>(op,loopFlag);
+				setThreadWorkMode(workState);
+			}
+			template<typename MCallable=Callable>
+			Thread(MCallable&& op,bool* loopFlag=nullptr,ThreadWorkMode workState=Detach) :
+					Thread() //默认采用Detach模式
+			{
+				setThreadCallable<MCallable>(op,loopFlag);
 				setThreadWorkMode(workState);
 			}
 
@@ -159,13 +164,24 @@ namespace andromeda {
 				return *this;
 			}
 
-			Thread& setThreadCallable(Callable&& op,bool isLoop=false)
+			template<typename MCallable=Callable> //MCallable可以为成员函数
+			Thread& setThreadCallable(MCallable& op,bool* loopFlag=nullptr) //储存_callable_obj原始对象，而实际执行的_callable对象在start()中才会实例化
 			{
 				if(_thread) //如果线程已经存在，则强制结束线程并释放
 					exit();
-				_callable=op;
+				_callable_obj=(void*)&op;
 				isCallableSet=true;
-				this->isLoop=isLoop;
+				this->loopFlag=loopFlag;
+				return *this;
+			}
+			template<typename MCallable=Callable>
+			Thread& setThreadCallable(MCallable&& op,bool* loopFlag=nullptr)
+			{
+				if(_thread) //如果线程已经存在，则强制结束线程并释放
+					exit();
+				_callable_obj=(void*)&std::move(op);
+				isCallableSet=true;
+				this->loopFlag=loopFlag;
 				return *this;
 			}
 
@@ -178,11 +194,12 @@ namespace andromeda {
 			}
 
 			template<typename ...Args>
-			void start(Args&&... args)
+			void start(Args&&... args) //普通函数调用
 			{
 				if((!isCallableSet)||_thread) //没有设置运行函数，或已经调用了start()且不是处于Stopped状态就直接返回
 					return;
-				_thread=new std::thread(std::bind(&Thread<Callable,Derived>::run<Args...>,this,args...),args...);
+				_callable=std::function<Callable>(*(Callable*)_callable_obj);
+				_thread=new std::thread(std::bind(&Thread<Callable,Derived>::run<Args...>,this,args...));
 				_state=Running;
 				switch(_workState)
 				{
@@ -194,10 +211,31 @@ namespace andromeda {
 					break;
 				}
 			}
+
+			template<typename Class,typename ...Args>
+			void start(Class* cls,Args&&... args) //成员函数调用
+			{
+				if((!isCallableSet)||_thread) //没有设置运行函数，或已经调用了start()且不是处于Stopped状态就直接返回
+					return;
+				typedef typename andromeda::tmp::get_func_ret_type<Class,Callable,Args...>::result_type ret_type;
+				_callable=andromeda::tmp::bind_this<Class,ret_type,Args...>::bind(*(typename andromeda::tmp::func_type<Class,ret_type,Args...>::result_type*)_callable_obj,cls); //为成员函数绑定this
+				_thread=new std::thread(std::bind(&Thread<Callable,Derived>::run<Args...>,this,args...));
+				_state=Running;
+				switch(_workState)
+				{
+				case Join:
+					_thread->join();
+					break;
+				case Detach:
+					_thread->detach();
+					break;
+				}
+			}
+
 			//返回0表示操作成功，返回-1表示失败
 			int suspend()
 			{
-				if(_thread&&isLoop)
+				if(_thread&&isLoop())
 				{
 					before_suspended();
 					shouldPause=true;
@@ -210,7 +248,7 @@ namespace andromeda {
 
 			int resume()
 			{
-				if(_thread&&isLoop)
+				if(_thread&&isLoop())
 				{
 					before_resume();
 					shouldPause=false;
@@ -224,7 +262,7 @@ namespace andromeda {
 
 			int stop() //stop()后依然可以直接继续调用start()重新执行
 			{
-				if(_thread&&isLoop)
+				if(_thread&&isLoop())
 				{
 					before_stop();
 					shouldPause=false;

@@ -1,6 +1,7 @@
 #ifndef ANDROMEDA_APP_APPLICATION
 #define ANDROMEDA_APP_APPLICATION
 
+#include "../macros/Debug.h"
 #include "../../lib/opengl/glad/glad.h"
 #include "../../lib/opengl/GLFW/glfw3.h"
 #include "Window.hpp"
@@ -8,35 +9,36 @@
 #include "MainLoopThread.hpp"
 
 namespace andromeda {
+	extern bool use_opengl;
+	extern bool use_portaudio;
+
 	namespace app {
 		template<typename Derived>
 		class Application
 		{
+			friend class MainLoopThread<Derived>;
 		private:
 			Window window;
 			FrameRate frameRate;
-			std::atomic_bool isRunning=false;
+			bool isRunning=false;
 			MainLoopThread<Derived>* appMainLoopThread=nullptr;
 
-			void _initialize() //内部使用的初始化函数
+			void _initialize() //内部使用的初始化函数，由appMainLoopThread在线程开始执行
 			{
-
+				isRunning=true;
+				glfwMakeContextCurrent(window);
 				initialize();
+				frameRate.init();
 			}
 
-			void _loop() //多线程执行的主函数，此函数将循环执行
+			void _loop() //多线程执行的主函数，紧跟_initialize()执行，此函数将由appMainLoopThread循环执行
 			{
-				if(isRunning)
-				{
-					glClear(GL_COLOR_BUFFER_BIT);
-					update(frameRate.get_tpf());
-					_render();
-					glfwSwapBuffers(window);
-					glfwPollEvents();
-					frameRate.calc();
-				}
-				else
-					appMainLoopThread.stop();
+				glClear(GL_COLOR_BUFFER_BIT);
+				update(frameRate.get_tpf());
+				_render();
+				glfwSwapBuffers(window);
+				glfwPollEvents();
+				frameRate.calc();
 			}
 
 			void _render()
@@ -47,20 +49,19 @@ namespace andromeda {
 			void _terminate() //内部使用的终止函数
 			{
 				terminate();
-
 			}
 		protected:
 			void initialize()
 			{
-				(Derived*)this->initialize();
+				((Derived*)this)->initialize();
 			}
 			void terminate()
 			{
-				(Derived*)this->terminate();
+				((Derived*)this)->terminate();
 			}
 			void update(float tpf)
 			{
-				(Derived*)this->update(tpf);
+				((Derived*)this)->update(tpf);
 			}
 
 		public:
@@ -78,10 +79,10 @@ namespace andromeda {
 					init_app=false;
 				}
 				if(!init_app)
-					return;
+					PRINT_MESSAGE("Application not initialized.")
+				return;
 				new (this) Window(window_title?window_title:"Andromeda Application");
-				appMainLoopThread=new MainLoopThread<Derived>(this);
-				appMainLoopThread.setThreadCallable(_loop,true);
+				appMainLoopThread=new MainLoopThread<Derived>((Derived*)this);
 			}
 
 			void exit()
@@ -92,10 +93,8 @@ namespace andromeda {
 			void launch(bool blocked=true) //blocked=true时，则直到Application线程执行完毕后才执行之后的代码
 			{
 				if(blocked)
-					appMainLoopThread.setThreadWorkMode(andromeda::util::ThreadWorkMode::Join);
-				isRunning=true;
-				glfwMakeContextCurrent(window);
-				appMainLoopThread.start(); //Application的主线程开启后，如果设置了blocked=true则程序的主线程就休眠直到isRunning=false
+					appMainLoopThread->setThreadWorkMode(andromeda::util::ThreadWorkMode::Join);
+				appMainLoopThread->start(); //Application的主线程开启后，如果设置了blocked=true则程序的主线程就休眠直到isRunning=false
 			}
 
 			inline int getFPS()
@@ -127,9 +126,8 @@ namespace andromeda {
 			{
 				window.setWindowSize(width,height);
 			}
-		}
-		;
+		};
 	}
 }
 
-#endif//ANDROMEDA_APP_APPLICATION
+#endif//ANDROMEDA_APP_APPLICATION
