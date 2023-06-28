@@ -70,12 +70,12 @@ const char* andromeda::util::str_join(const char* str1,const char* str2)
 
 const char* andromeda::util::str_join(const char* str1,int num)
 {
-	return str_join(str1,int_to_string_dec(num));
+	return str_join(str1,str_join(num));
 }
 
 const char* andromeda::util::str_join(int num,const char* str1)
 {
-	return str_join(int_to_string_dec(num),str1);
+	return str_join(str_join(num),str1);
 }
 
 const char* andromeda::util::str_join(const char* str1,char ch)
@@ -96,4 +96,14 @@ const char* andromeda::util::str_join(char ch,const char* str1)
 	str[0]=ch;
 	strcpy(str+1,str1);
 	return (const char*)str;
+}
+
+const char* andromeda::util::str_join(bool b,const char* str1)
+{
+	return str_join(str_join(b),str1);
+}
+
+const char* andromeda::util::str_join(const char* str1,bool b)
+{
+	return str_join(str1,str_join(b));
 }

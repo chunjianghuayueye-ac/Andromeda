@@ -1,11 +1,15 @@
 #include "macros/Debug.h"
-#include "../lib/opengl/glad/glad.h"
 #include "../lib/opengl/GLFW/glfw3.h"
 #include "../lib/portaudio/portaudio.h"
 
 namespace andromeda {
 	bool use_opengl=true;
 	bool use_portaudio=true;
+
+	void _glfw_error_print(int err_code,const char* description)
+	{
+		PRINT_MESSAGE("GLFW Error Code:",err_code,"\nDescription:",description)
+	}
 }
 
 using namespace andromeda;
@@ -16,11 +20,10 @@ __attribute__((constructor)) void _init_lib()
 	{
 		if(!glfwInit())
 			PRINT_MESSAGE("Initialize GLFW failed.")
-		if(!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-			PRINT_MESSAGE("Initialize GLAD failed.")
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR,3);
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR,3);
 		glfwWindowHint(GLFW_OPENGL_PROFILE,GLFW_OPENGL_CORE_PROFILE);
+		glfwSetErrorCallback(andromeda::_glfw_error_print);
 	}
 	if(use_portaudio)
 	{

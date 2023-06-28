@@ -6,15 +6,33 @@ namespace andromeda {
 
 		extern void packBitsToBytes(unsigned char* bits,int bits_start_pos,unsigned char* bytes,int bytes_start_pos,long int bits_length);
 		extern const char* int_to_string_dec(int num);
+
 		extern const char* str_join(const char* str1,const char* str2);
 		extern const char* str_join(const char* str1,int num);
 		extern const char* str_join(int num,const char* str1);
 		extern const char* str_join(const char* str1,char ch);
 		extern const char* str_join(char ch,const char* str1);
+		extern const char* str_join(bool b,const char* str1);
+		extern const char* str_join(const char* str1,bool b);
 
 		__attribute__((always_inline)) inline const char* str_join(const char* str)
 		{
 			return str;
+		}
+
+		__attribute__((always_inline)) inline const char* str_join(int num)
+		{
+			return int_to_string_dec(num);
+		}
+
+		__attribute__((always_inline)) inline const char* str_join(bool b)
+		{
+			return b?"true":"false";
+		}
+
+		__attribute__((always_inline)) inline const char* str_join(char ch)
+		{
+			return (const char*)new char[1]{ch};
 		}
 
 		template<typename T>

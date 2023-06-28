@@ -6,11 +6,43 @@
 #include <atomic>
 #include <mutex>
 #include <condition_variable>
-
 #include "../tmp/Types.h"
 
 //THREAD宏可用于任何Callable，但不可用func参数不能传入ClassObj.Func，因为decltype无法解析可能的重载函数
 #define THREAD(obj_name,func) andromeda::util::Thread<decltype(func)> obj_name(func)
+
+#ifndef HAS_FUNC_INITIALIZE
+#define HAS_FUNC_INITIALIZE
+def_cls_has_func(initialize)
+#endif//HAS_FUNC_INITIALIZE
+#ifndef HAS_FUNC_TERMINATE
+#define HAS_FUNC_TERMINATE
+def_cls_has_func(terminate)
+#endif//HAS_FUNC_TERMINATE
+#ifndef HAS_FUNC_BEFORE_STOP
+#define HAS_FUNC_BEFORE_STOP
+def_cls_has_func(before_stop)
+#endif//HAS_FUNC_BEFORE_STOP
+#ifndef HAS_FUNC_AFTER_STOP
+#define HAS_FUNC_AFTER_STOP
+def_cls_has_func(after_stop)
+#endif//HAS_FUNC_AFTER_STOP
+#ifndef HAS_FUNC_BEFORE_SUSPENDED
+#define HAS_FUNC_BEFORE_SUSPENDED
+def_cls_has_func(before_suspended)
+#endif//HAS_FUNC_BEFORE_SUSPENDED
+#ifndef HAS_FUNC_AFTER_SUSPENDED
+#define HAS_FUNC_AFTER_SUSPENDED
+def_cls_has_func(after_suspended)
+#endif//HAS_FUNC_AFTER_SUSPENDED
+#ifndef HAS_FUNC_BEFORE_RESUME
+#define HAS_FUNC_BEFORE_RESUME
+def_cls_has_func(before_resume)
+#endif//HAS_FUNC_BEFORE_RESUME
+#ifndef HAS_FUNC_AFTER_RESUME
+#define HAS_FUNC_AFTER_RESUME
+def_cls_has_func(after_resume)
+#endif//HAS_FUNC_AFTER_RESUME
 
 namespace andromeda {
 	namespace util {
@@ -33,11 +65,21 @@ namespace andromeda {
 		template<typename Callable,typename Derived=void> //Callable为任何可调用对象（包括成员函数），Derived用于继承时传入子类CRTP，若is_class<Derived>=false则表示不继承
 		class Thread
 		{
+			//子类必须添加如下friend class
+			//start
+			friend class has_func(initialize)<void>;
+			friend class has_func(terminate)<void>;
+			friend class has_func(before_stop)<void>;
+			friend class has_func(after_stop)<void>;
+			friend class has_func(before_suspended)<void>;
+			friend class has_func(after_suspended)<void>;
+			friend class has_func(before_resume)<void>;
+			friend class has_func(after_resume)<void>;
+			//end
+			friend void exitThread<>(Thread<Callable,Derived>* thread);
 		public:
 			typedef typename andromeda::tmp::degenerate_func<Callable>::result_type DegeneratedCallableType;
 		private:
-			friend void exitThread<>(Thread<Callable,Derived>* thread);
-
 			std::thread* _thread=nullptr;
 			ThreadWorkMode _workState=Detach;
 			ThreadState _state=Stopped;
@@ -85,49 +127,49 @@ namespace andromeda {
 			//CRTP实现
 			void initialize() //执行函数执行之前调用一次
 			{
-				if(andromeda::tmp::is_class<Derived>::result)
+				if(andromeda::tmp::is_class<Derived>::result&&has_func(initialize)<void>::check<Derived>::result) //Derived是类且有该成员函数
 					((typename andromeda::tmp::_if<andromeda::tmp::is_class<Derived>::result,Derived,Thread<Callable,Derived>>::result_type*)this)->initialize();
 			}
 
 			void terminate() //执行函数（包括isLoop=true时的情况）结束后调用一次
 			{
-				if(andromeda::tmp::is_class<Derived>::result)
+				if(andromeda::tmp::is_class<Derived>::result&&has_func(terminate)<void>::check<Derived>::result)
 					((typename andromeda::tmp::_if<andromeda::tmp::is_class<Derived>::result,Derived,Thread<Callable,Derived>>::result_type*)this)->terminate();
 			}
 
 			void before_stop() //每次成功调用stop()前调用一次
 			{
-				if(andromeda::tmp::is_class<Derived>::result)
+				if(andromeda::tmp::is_class<Derived>::result&&has_func(before_stop)<void>::check<Derived>::result)
 					((typename andromeda::tmp::_if<andromeda::tmp::is_class<Derived>::result,Derived,Thread<Callable,Derived>>::result_type*)this)->before_stop();
 			}
 
 			void after_stop() //每次成功调用stop()后调用一次
 			{
-				if(andromeda::tmp::is_class<Derived>::result)
+				if(andromeda::tmp::is_class<Derived>::result&&has_func(after_stop)<void>::check<Derived>::result)
 					((typename andromeda::tmp::_if<andromeda::tmp::is_class<Derived>::result,Derived,Thread<Callable,Derived>>::result_type*)this)->after_stop();
 			}
 
 			void before_suspended() //每次成功调用suspended()前调用一次
 			{
-				if(andromeda::tmp::is_class<Derived>::result)
+				if(andromeda::tmp::is_class<Derived>::result&&has_func(before_suspended)<void>::check<Derived>::result)
 					((typename andromeda::tmp::_if<andromeda::tmp::is_class<Derived>::result,Derived,Thread<Callable,Derived>>::result_type*)this)->before_suspended();
 			}
 
 			void after_suspended() //每次成功调用suspended()后调用一次
 			{
-				if(andromeda::tmp::is_class<Derived>::result)
+				if(andromeda::tmp::is_class<Derived>::result&&has_func(after_suspended)<void>::check<Derived>::result)
 					((typename andromeda::tmp::_if<andromeda::tmp::is_class<Derived>::result,Derived,Thread<Callable,Derived>>::result_type*)this)->after_suspended();
 			}
 
 			void before_resume() //每次成功调用resume()前调用一次
 			{
-				if(andromeda::tmp::is_class<Derived>::result)
+				if(andromeda::tmp::is_class<Derived>::result&&has_func(before_resume)<void>::check<Derived>::result)
 					((typename andromeda::tmp::_if<andromeda::tmp::is_class<Derived>::result,Derived,Thread<Callable,Derived>>::result_type*)this)->before_resume();
 			}
 
 			void after_resume() //每次成功调用resume()后调用一次
 			{
-				if(andromeda::tmp::is_class<Derived>::result)
+				if(andromeda::tmp::is_class<Derived>::result&&has_func(after_resume)<void>::check<Derived>::result)
 					((typename andromeda::tmp::_if<andromeda::tmp::is_class<Derived>::result,Derived,Thread<Callable,Derived>>::result_type*)this)->after_resume();
 			}
 		public:
@@ -207,7 +249,7 @@ namespace andromeda {
 			{
 				if((!isCallableSet)||_thread) //没有设置运行函数，或已经调用了start()且不是处于Stopped状态就直接返回
 					return;
-				_callable=std::function<Callable>(*(Callable*)_callable_obj);
+				_callable=std::function<DegeneratedCallableType>(*(DegeneratedCallableType*)_callable_obj);
 				_thread=new std::thread(std::bind(&Thread<Callable,Derived>::run<Args...>,this,args...));
 				_state=Running;
 				switch(_workState)

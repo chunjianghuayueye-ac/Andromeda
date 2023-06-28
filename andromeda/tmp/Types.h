@@ -46,14 +46,14 @@ namespace andromeda {
 		struct __get_func_ret_type_impl
 		{
 			typedef decltype(std::declval<std::function<Func> >()(std::declval<Args>()...)) result_type;
-			typedef void class_type;//函数所属的类
+			typedef void class_type;		//函数所属的类
 		};
 
 		template<typename Class,typename Func,typename ...Args>
 		struct __get_func_ret_type_impl<Func Class::*,Args...>
 		{
 			typedef decltype((std::declval<Class>().*std::declval<Func Class::*>())(std::declval<Args>()...)) result_type;
-			typedef Class class_type;//函数所属的类
+			typedef Class class_type;		//函数所属的类
 		};
 
 		template<typename Func,typename ...Args>
@@ -180,6 +180,33 @@ namespace andromeda {
 		{
 			static const bool result=!is_basic_type<T>::result;
 		};
+
+	/*判断类中是否存在某个名称的函数。
+	 *用法：在文件开头def_cls_has_func(函数名)，def_cls_has_func宏应当使用ifndef-define来防止重复定义
+	 *之后可通过has_func(函数名)<返回值类型,参数类型>::check<类名>::result或has_func(函数名)<返回值类型,参数类型>::check_ptr(对象指针)得知是否具有某名称的public成员函数（必须可以访问才行，否则需要加入friend class has_func(函数名)）
+	 */
+#define def_cls_has_func(FUNC_NAME)\
+		template<typename Ret,typename ...Args>\
+		struct has_func_##FUNC_NAME\
+		{\
+			template<typename Class,Ret (Class::*MembFunc)(Args...)=&Class::FUNC_NAME>\
+			static constexpr bool check_ptr(Class* cls)\
+			{\
+				return true;\
+			};\
+			static constexpr bool check_ptr(...)\
+			{\
+				return false;\
+			};\
+			template<typename Class>\
+			struct check\
+			{\
+				static const bool result=check_ptr((Class*)0);\
+			};\
+		};
+
+#define has_func(FUNC_NAME) has_func_##FUNC_NAME
+
 	}
 }
 

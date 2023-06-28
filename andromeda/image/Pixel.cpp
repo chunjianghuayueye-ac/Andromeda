@@ -1,7 +1,6 @@
 #include "Pixel.hpp"
 
 #include "color/ColorRGBA.hpp"
-#include "../macros/Math.h"
 
 using namespace andromeda::image::color;
 using namespace andromeda::image;
@@ -21,12 +20,12 @@ Pixel::Pixel(ColorRGBA color) :
 {
 }
 
-ColorRGBA Pixel::getColorRGBA()
+ColorRGBA Pixel::toColorRGBA()
 {
 	return ColorRGBA(r,g,b,a);
 }
 
-void Pixel::setRGBA(int _r,int _g,int _b,int _a) //设置-1表示不变，0-255则改变为设置的值，超出这个范围的就取0或255
+Pixel& Pixel::setRGBA(int _r,int _g,int _b,int _a) //设置-1表示不变，0-255则改变为设置的值，超出这个范围的就取0或255
 {
 	if(_r!=-1)
 		r=getPixelInt(_r);
@@ -36,4 +35,5 @@ void Pixel::setRGBA(int _r,int _g,int _b,int _a) //设置-1表示不变，0-255则改变为
 		b=getPixelInt(_b);
 	if(_a!=-1)
 		a=getPixelInt(_a);
+	return *this;
 }

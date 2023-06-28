@@ -1,8 +1,8 @@
 #include "ColorRGBA.hpp"
 
-#include "../../macros/Math.h"
 #include "../RasterImage.hpp"
 #include "../Pixel.hpp"
+#include "../ColorChannel.hpp"
 
 using namespace andromeda::image::color;
 using namespace andromeda::image;
@@ -25,6 +25,19 @@ ColorRGBA::ColorRGBA(const Pixel pixel) :
 Pixel ColorRGBA::toPixel()
 {
 	return Pixel(r,g,b,a);
+}
+
+ColorRGBA& ColorRGBA::setRGBA(float _r,float _g,float _b,float _a) //设置-1表示不变，0-255则改变为设置的值，超出这个范围的就取0或255
+{
+	if(_r!=-1)
+		r=getPixelFloat(_r);
+	if(_g!=-1)
+		g=getPixelFloat(_g);
+	if(_b!=-1)
+		b=getPixelFloat(_b);
+	if(_a!=-1)
+		a=getPixelFloat(_a);
+	return *this;
 }
 
 ColorRGBA ColorRGBA::mixAlpha(ColorRGBA below,ColorRGBA above)

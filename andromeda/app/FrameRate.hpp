@@ -17,7 +17,7 @@ namespace andromeda {
 			double time_unit;
 			double delta_t=0,tpf=0,tpf_limit=-1;
 			bool limit_fps=false;
-			int fps=0,fps_limit=-1; //fps_limit为最大帧率限制（<0表示不限制，=0将会把该线程挂起，需要通过异步操作resume()恢复），在调用calc()时如果单帧的时间不足1/fps_limit秒则会sleep该线程直到该帧的秒数占用达到1/fps_limit秒
+			int fps=0,fps_count=0,fps_limit=-1; //fps_limit为最大帧率限制（<=0表示不限制），在调用calc()时如果单帧的时间不足1/fps_limit秒则会sleep该线程直到该帧的秒数占用达到1/fps_limit秒
 		public:
 
 			void init(); //初始化调用，只调用一次。再次调用则相当于重置时钟回归成第一次调用init()后的状态

@@ -1,26 +1,13 @@
 #include  "Window.hpp"
+#include "../macros/Debug.h"
 
 using namespace andromeda::app;
 
-Window::Window(int width,int height,const char* title,bool isfullscreen,GLFWmonitor* monitor_) :
-		width(width), height(height), isFullScreen(isfullscreen), title(title), monitor(monitor_)
+Window::Window(const char* title,int width,int height,bool isfullscreen,andromeda::image::color::ColorRGBA backColor_,GLFWmonitor* monitor_) :
+		width(width), height(height), isFullScreen(isfullscreen), title(title), backColor(backColor_), monitor(monitor_)
 {
-	windowID=glfwCreateWindow(width,height,title,isfullscreen?monitor_:nullptr,nullptr);
-	glViewport(0,0,width,height);
+	if(!title)
+		PRINT_MESSAGE("Window name cannot be null")
+	if(!(windowID=glfwCreateWindow(width,height,title,isfullscreen?monitor_:nullptr,nullptr)))
+		PRINT_MESSAGE("Create Window failed")
 }
-
-Window::Window(int width,int height,const char* title) :
-		Window(width,height,title,false)
-{
-}
-
-Window::Window(const char* title) :
-		Window(800,600,title,false)
-{
-}
-
-Window::Window() :
-		Window(800,600,nullptr,false)
-{
-}
-

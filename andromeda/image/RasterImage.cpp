@@ -63,7 +63,7 @@ void RasterImage::mix(RasterImage &img,int pos_x,int pos_y)
 	int traversal_height=pos_y+img.height>height?height-pos_y:img.height;
 	startTraversalPixelsInArea(img,0,0,traversal_width,traversal_height,0,0,IMAGE_EDGE_INCLUDE)
 			Pixel &pixel_in_src_image=this->getPixel(pos_x+absolute_x_in_area,pos_y+absolute_y_in_area);
-			pixel_in_src_image=ColorRGBA::mixAlpha(pixel_in_src_image.getColorRGBA(),this_pixel_in_area.getColorRGBA()).toPixel();
+			pixel_in_src_image=ColorRGBA::mixAlpha(pixel_in_src_image.toColorRGBA(),this_pixel_in_area.toColorRGBA()).toPixel();
 		endTraversalPixelsInArea(img,0,0,traversal_width,traversal_height,0,0,IMAGE_EDGE_INCLUDE)
 }
 

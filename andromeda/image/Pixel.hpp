@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 #include "color/ColorRGBA.hpp"
+#include "ColorChannel.hpp"
+#include "../macros/Math.h"
 
 namespace andromeda {
 	namespace image {
@@ -24,7 +26,7 @@ namespace andromeda {
 				return (r==destpixel.r&&g==destpixel.g&&b==destpixel.b&&a==destpixel.a);
 			}
 
-			color::ColorRGBA getColorRGBA();
+			color::ColorRGBA toColorRGBA();
 
 			inline uint32_t packToInt()
 			{
@@ -32,7 +34,24 @@ namespace andromeda {
 				return (((((pixel<<8)|g)<<8)|b)<<8)|a;
 			}
 
-			void setRGBA(int _r=-1,int _g=-1,int _b=-1,int _a=-1); //设置-1表示不变，0-255则改变为设置的值，超出这个范围的就取0或255
+			inline Pixel& setRGBA(Pixel pixel)
+			{
+				memcpy(this,&pixel,sizeof(Pixel));
+				return *this;
+			}
+
+			inline Pixel& setRGBA(ColorChannel color_ch,float color_value)
+			{
+				*((int*)this+color_ch)=getChannelInt(color_value);
+				return *this;
+			}
+
+			inline int getRGBA(ColorChannel color_ch)
+			{
+				return *((int*)this+color_ch);
+			}
+
+			Pixel& setRGBA(int _r=-1,int _g=-1,int _b=-1,int _a=-1); //设置-1表示不变，0-255则改变为设置的值，超出这个范围的就取0或255
 
 			inline Pixel& mulFactor(float f)
 			{

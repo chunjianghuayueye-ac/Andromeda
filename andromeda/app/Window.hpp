@@ -3,6 +3,8 @@
 
 #include "../../lib/opengl/glad/glad.h"
 #include "../../lib/opengl/GLFW/glfw3.h"
+#include "../image/color/ColorRGBA.hpp"
+#include "../image/ColorChannel.hpp"
 
 namespace andromeda {
 	namespace app {
@@ -14,16 +16,36 @@ namespace andromeda {
 			int width,height;
 			bool isFullScreen;
 			const char* title;
+			andromeda::image::color::ColorRGBA backColor;
 
 		public:
-			Window();
-			Window(int width,int height,const char* title,bool isfullscreen,GLFWmonitor* monitor_=glfwGetPrimaryMonitor());
-			Window(int width,int height,const char* title);
-			Window(const char* title);
+			Window()=default;//该构造函数不会实际初始化窗口仅分配内存，需要重新调用其他构造函数以正常工作
+			Window(const char* title,int width=800,int height=600,bool isfullscreen=false,andromeda::image::color::ColorRGBA backColor_={0,0,0,0},GLFWmonitor* monitor_=glfwGetPrimaryMonitor());
 
 			inline operator GLFWwindow*()
 			{
 				return windowID;
+			}
+
+			inline void setBackColor(andromeda::image::color::ColorRGBA backColor_={0,0,0,0})
+			{
+				backColor=backColor_;
+			}
+
+			inline andromeda::image::color::ColorRGBA getBackColor()
+			{
+				return backColor;
+			}
+
+			inline Window& setBackColor(andromeda::image::ColorChannel ch,float v)
+			{
+				backColor.setRGBA(ch,v);
+				return *this;
+			}
+
+			inline float getBackColor(andromeda::image::ColorChannel ch)
+			{
+				return backColor.getRGBA(ch);
 			}
 
 			inline int getWidth(void)
@@ -41,23 +63,26 @@ namespace andromeda {
 				return isFullScreen;
 			}
 
-			inline void setFullScreen(bool isFullScreen_)
+			inline Window& setFullScreen(bool isFullScreen_)
 			{
 				isFullScreen=isFullScreen_;
 				glfwSetWindowMonitor(windowID,isFullScreen_?monitor:nullptr,0,0,width,height,GLFW_DONT_CARE);
+				return *this;
 			}
 
-			inline void setWindowedFullScreen(bool isFullScreen_)
+			inline Window& setWindowedFullScreen(bool isFullScreen_)
 			{
 				const GLFWvidmode* mode=glfwGetVideoMode(monitor);
 				glfwSetWindowMonitor(windowID,monitor,0,0,mode->width,mode->height,mode->refreshRate);
+				return *this;
 			}
 
-			inline void setWindowSize(int width_,int height_)
+			inline Window& setWindowSize(int width_,int height_)
 			{
 				width=width_;
 				height=height_;
 				glfwSetWindowSize(windowID,width_,height_);
+				return *this;
 			}
 
 			inline bool setIsAlwaysOnTop(bool floating) //设置窗口是否总是置顶

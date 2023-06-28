@@ -72,7 +72,7 @@ void andromeda::image::convertRGBA32ToYUV444P(unsigned char* data,int width,int 
 	{
 		for(int x=0;x<width;++x)
 		{
-			this_color=ColorRGBA::mixAlpha(back_color,((Pixel*)data+y*width+x)->getColorRGBA());
+			this_color=ColorRGBA::mixAlpha(back_color,((Pixel*)data+y*width+x)->toColorRGBA());
 			*(Y+y*linesize_Y+x)=getPixelLightFloat(0.299*this_color.r+0.587*this_color.g+0.114*this_color.b);
 			*(U+y*linesize_U+x)=getPixelChrominaceFloat(-0.1687*this_color.r-0.3313*this_color.g+0.5*this_color.b);
 			*(V+y*linesize_V+x)=getPixelChrominaceFloat(0.5*this_color.r-0.4187*this_color.g-0.0813*this_color.b);
@@ -106,7 +106,7 @@ void andromeda::image::convertRGBA32ToRGB24(unsigned char* data,int width,int he
 	{
 		for(int x=0;x<width;++x)
 		{
-			this_color=ColorRGBA::mixAlpha(back_color,((Pixel*)(data+y*width+x))->getColorRGBA());
+			this_color=ColorRGBA::mixAlpha(back_color,((Pixel*)(data+y*width+x))->toColorRGBA());
 			*(dest+3*y*linesize+3*x)=getPixelFloat(this_color.r);
 			*(dest+3*y*linesize+3*x+1)=getPixelFloat(this_color.g);
 			*(dest+3*y*linesize+3*x+2)=getPixelFloat(this_color.b);
@@ -156,7 +156,7 @@ void andromeda::image::convertRGBA32Tou255YUV444P(unsigned char* data,int width,
 	{
 		for(int x=0;x<width;++x)
 		{
-			this_pixel=ColorRGBA::mixAlpha(back_color,((Pixel*)data+y*width+x)->getColorRGBA()).toPixel();
+			this_pixel=ColorRGBA::mixAlpha(back_color,((Pixel*)data+y*width+x)->toColorRGBA()).toPixel();
 			*(Y+y*linesize_Y+x)=0.299*this_pixel.r+0.587*this_pixel.g+0.114*this_pixel.b;
 			*(U+y*linesize_U+x)=-0.1687*this_pixel.r-0.3313*this_pixel.g+0.5*this_pixel.b+128;
 			*(V+y*linesize_V+x)=0.5*this_pixel.r-0.4187*this_pixel.g-0.0813*this_pixel.b+128;
