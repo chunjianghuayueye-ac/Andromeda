@@ -10,6 +10,11 @@ namespace andromeda {
 	{
 		PRINT_MESSAGE("GLFW Error Code:",err_code,"\nDescription:",description)
 	}
+
+	void _glfw_framebuffer_size_callback(GLFWwindow* window,int width,int height)
+	{
+		glViewport(0,0,width,height);
+	}
 }
 
 using namespace andromeda;
@@ -23,6 +28,9 @@ __attribute__((constructor)) void _init_lib()
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR,3);
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR,3);
 		glfwWindowHint(GLFW_OPENGL_PROFILE,GLFW_OPENGL_CORE_PROFILE);
+#ifdef __APPLE__
+		glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#endif
 		glfwSetErrorCallback(andromeda::_glfw_error_print);
 	}
 	if(use_portaudio)

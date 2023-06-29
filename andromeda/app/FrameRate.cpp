@@ -28,27 +28,27 @@ void FrameRate::set_fps_limit(int _fps_limit)
 
 void FrameRate::calc()
 {
+	double sleep_time=0;
 	++fps_count;
 	this_time=high_resolution_clock::now();
 	tpf=HRC_TIME_DURATION_TO_SEC(this_time-last_time);
 	if(limit_fps)
 	{
-		double sleep_time=tpf_limit-tpf;
+		sleep_time=tpf_limit-tpf;
 		if(sleep_time>0)
 		{
 			std::this_thread::sleep_for(nanoseconds((int)(sleep_time*1E9)));
 			delta_t+=tpf_limit;
+			last_time+=nanoseconds((int)(tpf_limit*1E9));
+			goto END;
 		}
-		else
-			delta_t+=tpf;
 	}
-	else
-		delta_t+=tpf;
-	if(delta_t>=1)
+	delta_t+=tpf;
+	last_time=this_time;
+	END:if(delta_t>=1)
 	{
 		--delta_t;
 		fps=fps_count;
 		fps_count=0;
 	}
-	last_time=this_time;
 }

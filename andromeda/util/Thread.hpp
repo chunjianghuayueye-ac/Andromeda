@@ -14,37 +14,24 @@
 #ifndef HAS_FUNC_INITIALIZE
 #define HAS_FUNC_INITIALIZE
 def_cls_has_func(initialize)
-#endif//HAS_FUNC_INITIALIZE
-#ifndef HAS_FUNC_TERMINATE
-#define HAS_FUNC_TERMINATE
+#endif//HAS_FUNC_INITIALIZE#ifndef HAS_FUNC_RUN
+#define HAS_FUNC_RUN
+def_cls_has_func(run)
+#endif//HAS_FUNC_RUN#ifndef HAS_FUNC_TERMINATE#define HAS_FUNC_TERMINATE
 def_cls_has_func(terminate)
-#endif//HAS_FUNC_TERMINATE
-#ifndef HAS_FUNC_BEFORE_STOP
-#define HAS_FUNC_BEFORE_STOP
+#endif//HAS_FUNC_TERMINATE#ifndef HAS_FUNC_BEFORE_STOP#define HAS_FUNC_BEFORE_STOP
 def_cls_has_func(before_stop)
-#endif//HAS_FUNC_BEFORE_STOP
-#ifndef HAS_FUNC_AFTER_STOP
-#define HAS_FUNC_AFTER_STOP
+#endif//HAS_FUNC_BEFORE_STOP#ifndef HAS_FUNC_AFTER_STOP#define HAS_FUNC_AFTER_STOP
 def_cls_has_func(after_stop)
-#endif//HAS_FUNC_AFTER_STOP
-#ifndef HAS_FUNC_BEFORE_SUSPENDED
-#define HAS_FUNC_BEFORE_SUSPENDED
+#endif//HAS_FUNC_AFTER_STOP#ifndef HAS_FUNC_BEFORE_SUSPENDED#define HAS_FUNC_BEFORE_SUSPENDED
 def_cls_has_func(before_suspended)
-#endif//HAS_FUNC_BEFORE_SUSPENDED
-#ifndef HAS_FUNC_AFTER_SUSPENDED
-#define HAS_FUNC_AFTER_SUSPENDED
+#endif//HAS_FUNC_BEFORE_SUSPENDED#ifndef HAS_FUNC_AFTER_SUSPENDED#define HAS_FUNC_AFTER_SUSPENDED
 def_cls_has_func(after_suspended)
-#endif//HAS_FUNC_AFTER_SUSPENDED
-#ifndef HAS_FUNC_BEFORE_RESUME
-#define HAS_FUNC_BEFORE_RESUME
+#endif//HAS_FUNC_AFTER_SUSPENDED#ifndef HAS_FUNC_BEFORE_RESUME#define HAS_FUNC_BEFORE_RESUME
 def_cls_has_func(before_resume)
-#endif//HAS_FUNC_BEFORE_RESUME
-#ifndef HAS_FUNC_AFTER_RESUME
-#define HAS_FUNC_AFTER_RESUME
+#endif//HAS_FUNC_BEFORE_RESUME#ifndef HAS_FUNC_AFTER_RESUME#define HAS_FUNC_AFTER_RESUME
 def_cls_has_func(after_resume)
-#endif//HAS_FUNC_AFTER_RESUME
-
-namespace andromeda {
+#endif//HAS_FUNC_AFTER_RESUMEnamespace andromeda {
 	namespace util {
 		enum ThreadWorkMode
 		{
@@ -68,6 +55,7 @@ namespace andromeda {
 			//子类必须添加如下friend class
 			//start
 			friend class has_func(initialize)<void>;
+			friend class has_func(run)<void>;
 			friend class has_func(terminate)<void>;
 			friend class has_func(before_stop)<void>;
 			friend class has_func(after_stop)<void>;
@@ -87,12 +75,12 @@ namespace andromeda {
 			std::atomic_bool shouldStop;
 			std::mutex _mutex;
 			std::condition_variable _condition;
-			void* _callable_obj; //储存原始的调用对象或函数指针
+			void* _callable_obj=nullptr; //储存原始的调用对象或函数指针。
 			std::function<DegeneratedCallableType> _callable; //用于实际执行的封装后的可调用对象，Callable如果是成员函数则退化为等效的普通函数并绑定this
 			bool* loopFlag=nullptr; //循环控制变量，nullptr表示不循环执行
-			bool isCallableSet=false;
+			bool isCallableSet=false; //如果为false就直接调用则调用子类的run()函数
 			template<typename ...Args>
-			void run(Args ...args) //非virtual类成员函数，其指针与通常函数指针不同
+			void _run(Args ...args) //非virtual类成员函数，其指针与通常函数指针不同
 			{
 				pthread_setcancelstate(PTHREAD_CANCEL_ENABLE,NULL); //允许退出线程
 				pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS,NULL); //收到CANCEL信号后立即退出线程
@@ -119,6 +107,33 @@ namespace andromeda {
 				exit(); //正常结束后释放线程，此时可通过start()再次调用而不必重新setThreadCallable()
 			}
 
+			void _run_derived() //使用子类run()
+			{
+				pthread_setcancelstate(PTHREAD_CANCEL_ENABLE,NULL); //允许退出线程
+				pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS,NULL); //收到CANCEL信号后立即退出线程
+				initialize();
+				if(isLoop())
+					while(!shouldStop)
+					{
+						run(); //isLoop=true时重复调用执行函数
+						if(shouldPause)
+						{
+							std::unique_lock<std::mutex> locker(_mutex);
+							while(shouldPause)
+							{
+								_condition.wait(locker); // Unlock _mutex and wait to be notified
+							}
+							locker.unlock();
+						}
+					}
+				else
+					run(); //isLoop=false时只调用一次执行函数
+				shouldPause=false;
+				shouldStop=false;
+				terminate();
+				exit(); //正常结束后释放线程，此时可通过start()再次调用而不必重新setThreadCallable()
+			}
+
 		protected:
 			inline bool isLoop()
 			{
@@ -129,6 +144,12 @@ namespace andromeda {
 			{
 				if(andromeda::tmp::is_class<Derived>::result&&has_func(initialize)<void>::check<Derived>::result) //Derived是类且有该成员函数
 					((typename andromeda::tmp::_if<andromeda::tmp::is_class<Derived>::result,Derived,Thread<Callable,Derived>>::result_type*)this)->initialize();
+			}
+
+			void run() //供继承类重写使用的执行函数，重写后可以不执行_callable_obj
+			{
+				if(andromeda::tmp::is_class<Derived>::result&&has_func(run)<void>::check<Derived>::result)
+					((typename andromeda::tmp::_if<andromeda::tmp::is_class<Derived>::result,Derived,Thread<Callable,Derived>>::result_type*)this)->run();
 			}
 
 			void terminate() //执行函数（包括isLoop=true时的情况）结束后调用一次
@@ -173,10 +194,17 @@ namespace andromeda {
 					((typename andromeda::tmp::_if<andromeda::tmp::is_class<Derived>::result,Derived,Thread<Callable,Derived>>::result_type*)this)->after_resume();
 			}
 		public:
-			Thread()
+			Thread(void)
 			{
 				shouldPause=false;
 				shouldStop=false;
+			}
+			//此构造函数可用于继承类中重写run()的类
+			Thread(bool* loopFlag,ThreadWorkMode workState=Detach) :
+					Thread()//默认采用Detach模式
+			{
+				this->loopFlag=loopFlag;
+				setThreadWorkMode(workState);
 			}
 			//isLoop设定是否循环执行运行函数。如果设定为false，则不可使用pause()、resume()、stop()，在执行运行函数期间只可执行exit()操作
 			template<typename MCallable=Callable>
@@ -247,11 +275,21 @@ namespace andromeda {
 			template<typename ...Args>
 			void start(Args&&... args) //非成员函数调用
 			{
-				if((!isCallableSet)||_thread) //没有设置运行函数，或已经调用了start()且不是处于Stopped状态就直接返回
+				if(_thread) //已经调用了start()且不是处于Stopped状态就直接返回
 					return;
+				if(!isCallableSet) //没有设置运行函数，调用子类的run()
+				{
+					if(andromeda::tmp::is_class<Derived>::result&&has_func(run)<void>::check<Derived>::result)
+					{
+						_thread=new std::thread(std::bind(&Thread<Callable,Derived>::_run_derived,this));
+						goto END;
+					}
+					else//子类没有run()则是无效调用直接返回
+						return;
+				}
 				_callable=std::function<DegeneratedCallableType>(*(DegeneratedCallableType*)_callable_obj);
-				_thread=new std::thread(std::bind(&Thread<Callable,Derived>::run<Args...>,this,args...));
-				_state=Running;
+				_thread=new std::thread(std::bind(&Thread<Callable,Derived>::_run<Args...>,this,args...));
+				END:_state=Running;
 				switch(_workState)
 				{
 				case Join:
@@ -266,12 +304,22 @@ namespace andromeda {
 			template<typename Class,typename ...Args>
 			void start(Class* cls,Args&&... args) //成员函数调用
 			{
-				if((!isCallableSet)||_thread) //没有设置运行函数，或已经调用了start()且不是处于Stopped状态就直接返回
+				if(_thread) //已经调用了start()且不是处于Stopped状态就直接返回
 					return;
+				if(!isCallableSet) //没有设置运行函数，调用子类的run()
+				{
+					if(andromeda::tmp::is_class<Derived>::result&&has_func(run)<void>::check<Derived>::result)
+					{
+						_thread=new std::thread(std::bind(&Thread<Callable,Derived>::_run_derived,this));
+						goto END;
+					}
+					else//子类没有run()则是无效调用直接返回
+						return;
+				}
 				typedef typename andromeda::tmp::get_func_ret_type<Callable,Args...>::result_type ret_type;
 				_callable=andromeda::tmp::bind_this<Class,ret_type,Args...>::bind(*(typename andromeda::tmp::func_type<Class,ret_type,Args...>::result_type*)_callable_obj,cls); //为成员函数绑定this
-				_thread=new std::thread(std::bind(&Thread<Callable,Derived>::run<Args...>,this,args...));
-				_state=Running;
+				_thread=new std::thread(std::bind(&Thread<Callable,Derived>::_run<Args...>,this,args...));
+				END:_state=Running;
 				switch(_workState)
 				{
 				case Join:
