@@ -7,11 +7,12 @@
 #include "Window.hpp"
 #include "FrameRate.hpp"
 #include "MainLoopThread.hpp"
+#include "../util/ThreadTurn.hpp"
 #include "../image/ColorChannel.hpp"
 #include "../tmp/Types.h"
 
 /* OpenGL与glfw部分函数必须在主线程调用，例如glfwCreateWindow()和glfwPollEvents()，因此更新（主）循环和渲染循环分开
- * 应用每秒更新数为帧率fps，渲染帧率是每秒渲染的次数，和帧率可以不相等，是实际画面的刷新率。两者可以设定一致
+ * 应用每秒更新数为帧率fps，渲染帧率是每秒渲染的次数，和帧率可以不相等，是实际画面的刷新率。两者可以设定一致（帧率同步，synchronize_fps=true）
  * 渲染、事件系统为主线程执行，在程序启动初期的初始化操作也由主线程执行
  */
 
@@ -45,12 +46,14 @@ def_cls_has_func(render_update)
 			FrameRate renderFrameRate;		//渲染循环计数器
 			bool isRunning=false;
 			MainLoopThread<Derived>* mainLoopThread=nullptr;
+			andromeda::util::ThreadTurn threadTurn;
 			//主线程函数，负责事件处理和更新
 			//内部使用的初始化函数
 			void _initialize(const char* window_title=nullptr,int width=800,int height=600,bool isfullscreen=false,andromeda::image::color::ColorRGBA backColor_={0,0,0,0},GLFWmonitor* monitor_=glfwGetPrimaryMonitor())
 			{
 				isRunning=true;
 				preinitialize();		//可以调用glfwWindowHint()
+				glfwWindowHint(GLFW_DOUBLEBUFFER,GLFW_FALSE);
 				new (this) Window(window_title?window_title:"Andromeda Application",width,height,isfullscreen,backColor_,monitor_); //初始化window
 				glfwSetFramebufferSizeCallback(window,_glfw_framebuffer_size_callback);
 				glfwMakeContextCurrent(window);
@@ -65,6 +68,11 @@ def_cls_has_func(render_update)
 			void _terminate() //内部使用的终止函数
 			{
 				terminate();
+			}
+
+			inline void turnMainLoopThread()
+			{
+				threadTurn.turn(*mainLoopThread);
 			}
 
 		protected:
@@ -96,6 +104,13 @@ def_cls_has_func(render_update)
 			}
 
 		public:
+			std::atomic_bool synchronize_fps;
+
+			inline operator andromeda::util::ThreadTurn*()
+			{
+				return &threadTurn;
+			}
+
 			Application()
 			{
 				bool init_app=true; //如果需要的库没有加载，则不初始化该类，无法使用该类
@@ -115,6 +130,7 @@ def_cls_has_func(render_update)
 					return;
 				}
 				mainLoopThread=new MainLoopThread<Derived>((Derived*)this);
+				synchronize_fps=true;//默认开启帧率同步
 			}
 
 			void exit()
@@ -129,11 +145,15 @@ def_cls_has_func(render_update)
 				renderFrameRate.init();
 				while(isRunning)
 				{
+					//输入处理
 					glfwPollEvents();
+					if(synchronize_fps)
+						turnMainLoopThread();
+					//渲染
 					glClear(GL_COLOR_BUFFER_BIT);
 					if(andromeda::tmp::is_class<Derived>::result&&has_func(render_update)<void,float>::check<Derived>::result)//如果子类没有render_update()则此调用将优化掉
 						render_update(renderFrameRate.get_tpf());
-					glfwSwapBuffers(window);
+					glFlush();
 					renderFrameRate.calc();
 					if(glfwWindowShouldClose(window))
 						isRunning=false;

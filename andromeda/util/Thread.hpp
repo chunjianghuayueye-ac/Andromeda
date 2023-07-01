@@ -84,26 +84,25 @@ def_cls_has_func(after_resume)
 			{
 				pthread_setcancelstate(PTHREAD_CANCEL_ENABLE,NULL); //允许退出线程
 				pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS,NULL); //收到CANCEL信号后立即退出线程
-				initialize();
+				if(andromeda::tmp::is_class<Derived>::result&&has_func(initialize)<void>::check<Derived>::result)
+					initialize();
 				if(isLoop())
 					while(!shouldStop)
 					{
 						_callable(args...); //isLoop=true时重复调用执行函数
 						if(shouldPause)
 						{
-							std::unique_lock<std::mutex> locker(_mutex);
+							std::unique_lock<std::mutex> lock(_mutex);//给互斥量上锁
 							while(shouldPause)
-							{
-								_condition.wait(locker); // Unlock _mutex and wait to be notified
-							}
-							locker.unlock();
+								_condition.wait(lock); //等待直到_condition通知该线程
 						}
 					}
 				else
 					_callable(args...); //isLoop=false时只调用一次执行函数
 				shouldPause=false;
 				shouldStop=false;
-				terminate();
+				if(andromeda::tmp::is_class<Derived>::result&&has_func(terminate)<void>::check<Derived>::result)
+					terminate();
 				exit(); //正常结束后释放线程，此时可通过start()再次调用而不必重新setThreadCallable()
 			}
 
@@ -111,26 +110,25 @@ def_cls_has_func(after_resume)
 			{
 				pthread_setcancelstate(PTHREAD_CANCEL_ENABLE,NULL); //允许退出线程
 				pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS,NULL); //收到CANCEL信号后立即退出线程
-				initialize();
+				if(andromeda::tmp::is_class<Derived>::result&&has_func(initialize)<void>::check<Derived>::result)
+					initialize();
 				if(isLoop())
 					while(!shouldStop)
 					{
 						run(); //isLoop=true时重复调用执行函数
 						if(shouldPause)
 						{
-							std::unique_lock<std::mutex> locker(_mutex);
+							std::unique_lock<std::mutex> lock(_mutex);
 							while(shouldPause)
-							{
-								_condition.wait(locker); // Unlock _mutex and wait to be notified
-							}
-							locker.unlock();
+								_condition.wait(lock);
 						}
 					}
 				else
 					run(); //isLoop=false时只调用一次执行函数
 				shouldPause=false;
 				shouldStop=false;
-				terminate();
+				if(andromeda::tmp::is_class<Derived>::result&&has_func(terminate)<void>::check<Derived>::result)
+					terminate();
 				exit(); //正常结束后释放线程，此时可通过start()再次调用而不必重新setThreadCallable()
 			}
 
@@ -331,48 +329,54 @@ def_cls_has_func(after_resume)
 				}
 			}
 
-			//返回0表示操作成功，返回-1表示失败
-			int suspend()
+			//返回true表示操作成功，返回false表示失败
+			bool suspend()
 			{
 				if(_thread&&isLoop())
 				{
-					before_suspended();
+					if(andromeda::tmp::is_class<Derived>::result&&has_func(before_suspended)<void>::check<Derived>::result)
+						before_suspended();
 					shouldPause=true;
 					_state=Suspended;
-					after_suspended();
-					return 0;
+					if(andromeda::tmp::is_class<Derived>::result&&has_func(after_suspended)<void>::check<Derived>::result)
+						after_suspended();
+					return true;
 				}
-				return -1;
+				return false;
 			}
 
-			int resume()
+			bool resume()
 			{
 				if(_thread&&isLoop())
 				{
-					before_resume();
+					if(andromeda::tmp::is_class<Derived>::result&&has_func(before_resume)<void>::check<Derived>::result)
+						before_resume();
 					shouldPause=false;
 					_condition.notify_all();
 					_state=Running;
-					after_resume();
-					return 0;
+					if(andromeda::tmp::is_class<Derived>::result&&has_func(after_resume)<void>::check<Derived>::result)
+						after_resume();
+					return true;
 				}
-				return -1;
+				return false;
 			}
 
-			int stop() //stop()后依然可以直接继续调用start()重新执行
+			bool stop() //stop()后依然可以直接继续调用start()重新执行
 			{
 				if(_thread&&isLoop())
 				{
-					before_stop();
+					if(andromeda::tmp::is_class<Derived>::result&&has_func(before_stop)<void>::check<Derived>::result)
+						before_stop();
 					shouldPause=false;
 					shouldStop=true;
 					_condition.notify_all();
 					_thread->join();
 					exit();
-					after_stop();
-					return 0;
+					if(andromeda::tmp::is_class<Derived>::result&&has_func(after_stop)<void>::check<Derived>::result)
+						after_stop();
+					return true;
 				}
-				return -1;
+				return false;
 			}
 
 			inline ThreadWorkMode getThreadWorkState()

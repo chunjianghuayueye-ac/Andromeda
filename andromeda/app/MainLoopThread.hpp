@@ -2,6 +2,7 @@
 #define ANDROMEDA_APP_MAINLOOPTHREAD
 
 #include "../util/Thread.hpp"
+#include "../util/ThreadTurn.hpp"
 #include "Application.hpp"
 #include "FrameRate.hpp"
 
@@ -27,6 +28,7 @@ namespace andromeda {
 		protected:
 			DerivedApp* app;
 			FrameRate frameRate;
+			andromeda::util::ThreadTurn threadTurn;
 
 			void initialize()
 			{
@@ -36,6 +38,8 @@ namespace andromeda {
 			void run() //多线程执行的渲染函数
 			{
 				app->update(frameRate.get_tpf());
+				if(app->synchronize_fps)
+					turnRenderThread();
 				frameRate.calc();
 			}
 
@@ -43,7 +47,17 @@ namespace andromeda {
 			{
 
 			}
+
+			inline void turnRenderThread()
+			{
+				threadTurn.turn(*app);
+			}
 		public:
+			inline operator andromeda::util::ThreadTurn*()
+			{
+				return &threadTurn;
+			}
+
 			MainLoopThread(DerivedApp* derived_app) :
 					andromeda::util::Thread<void(),MainLoopThread<DerivedApp>>(&(derived_app->isRunning),andromeda::util::ThreadWorkMode::Detach)
 			{
