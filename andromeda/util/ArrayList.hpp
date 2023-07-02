@@ -132,7 +132,12 @@ namespace andromeda {
 				return *(elements+index);
 			}
 
-			inline int getLength()//数组可使用的总长度，包括没有赋值的元素
+			E& operator[](int index)
+			{
+				return *(elements+index);
+			}
+
+			inline int getAvailableLength() //数组可使用的总长度，包括没有赋值的元素
 			{
 				return length;
 			}
@@ -142,7 +147,7 @@ namespace andromeda {
 				return last;
 			}
 
-			inline int getElementNum()
+			inline int getLength()//数组实际使用的长度
 			{
 				return last+1;
 			}
@@ -156,7 +161,17 @@ namespace andromeda {
 			{
 				return elements;
 			}
-
+			//手动释放内存，调用后就不应该再对该对象进行任何操作，否则会出错
+			inline void release()
+			{
+				free(elements);
+			}
+			//将数据类型强制转换为指定类型
+			template<typename T>
+			inline ArrayList<T>& cast()
+			{
+				return *(ArrayList<T>*)this;
+			}
 		protected:
 
 			void extendArray(int extend_cap)

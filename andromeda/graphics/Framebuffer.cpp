@@ -6,7 +6,7 @@ using namespace andromeda::graphics;
 using namespace andromeda::image::color;
 
 Framebuffer::Framebuffer(int width,int height,ColorRGBA clearColor) :
-		width(width), height(height),clearColor(clearColor)
+		width(width), height(height), clearColor(clearColor)
 {
 }
 
@@ -17,10 +17,6 @@ void Framebuffer::alloc(bool try_again)
 		clearAll();
 	else
 	{
-		GLuint last_frame_buffer,last_texture,last_render_buffer; //获取之前绑定的buffer id
-		glGetIntegerv(GL_FRAMEBUFFER_BINDING,&last_frame_buffer);
-		glGetIntegerv(GL_TEXTURE_BINDING_BUFFER,&last_texture);
-		glGetIntegerv(GL_RENDERBUFFER_BINDING,&last_render_buffer);
 		glGenFramebuffers(1,&frame_buffer);
 		glBindFramebuffer(GL_FRAMEBUFFER,frame_buffer);
 		glGenTextures(1,&color_buffer);
@@ -33,9 +29,9 @@ void Framebuffer::alloc(bool try_again)
 		glBindRenderbuffer(GL_RENDERBUFFER,depth_stencil_buffer);
 		glRenderbufferStorage(GL_RENDERBUFFER,GL_DEPTH24_STENCIL8,BUFFER_SIZE(width),BUFFER_SIZE(height)); //为深度模板缓冲分配内存
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER,GL_DEPTH_STENCIL_ATTACHMENT,GL_RENDERBUFFER,depth_stencil_buffer); //将深度模板缓冲绑定到frame_buffer
-		glBindFramebuffer(GL_FRAMEBUFFER,last_frame_buffer);
-		glBindTexture(GL_TEXTURE_2D,last_texture);
-		glBindRenderbuffer(GL_RENDERBUFFER,last_render_buffer);
+		glBindFramebuffer(GL_FRAMEBUFFER,0);
+		glBindTexture(GL_TEXTURE_2D,0);
+		glBindRenderbuffer(GL_RENDERBUFFER,0);
 	}
 	allocated=true;
 	if(glCheckFramebufferStatus(GL_FRAMEBUFFER)!=GL_FRAMEBUFFER_COMPLETE)
@@ -50,22 +46,55 @@ void Framebuffer::alloc(bool try_again)
 	}
 }
 
-GLuint Framebuffer::use()
+GLuint Framebuffer::getFramebufferTexture(GLuint dest_frame_buffer,int texture_attachment) //传入颜色缓冲序号
 {
-	GLuint last_frame_buffer;
-	glGetIntegerv(GL_FRAMEBUFFER_BINDING,&last_frame_buffer);
+	GLuint dest_texture;
+	glBindFramebuffer(GL_FRAMEBUFFER,dest_frame_buffer);
+	if(dest_frame_buffer) //用户创建缓冲
+		glGetFramebufferAttachmentParameteriv(GL_FRAMEBUFFER,GL_COLOR_ATTACHMENT0+texture_attachment,GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME,&dest_texture);
+	else
+		//默认缓冲
+		glGetFramebufferAttachmentParameteriv(GL_FRAMEBUFFER,GL_FRONT_LEFT+texture_attachment,GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME,&dest_texture);
+	glBindFramebuffer(GL_FRAMEBUFFER,0);
+	return dest_texture;
+}
+
+GLuint Framebuffer::getFramebufferDepthStencil(GLuint dest_frame_buffer) //传入颜色缓冲序号
+{
+	GLuint dest_depth_stencil;
+	glBindFramebuffer(GL_FRAMEBUFFER,dest_frame_buffer);
+	glGetFramebufferAttachmentParameteriv(GL_FRAMEBUFFER,GL_DEPTH_STENCIL_ATTACHMENT,GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME,&dest_depth_stencil);
+	glBindFramebuffer(GL_FRAMEBUFFER,0);
+	return dest_depth_stencil;
+}
+
+void Framebuffer::copyColorBuffer(GLuint dest_frame_buffer,int color_buffer_attachment)
+{
+	GLuint dest_texture=getFramebufferTexture(dest_frame_buffer,color_buffer_attachment);
+	glBindFramebuffer(GL_FRAMEBUFFER,dest_frame_buffer);
+	glBindTexture(GL_TEXTURE_2D,dest_texture);
+	glCopyTexSubImage2D(GL_TEXTURE_2D,0,0,0,0,0,width,height);
+	glBindTexture(GL_TEXTURE_2D,0);
+	glBindFramebuffer(GL_FRAMEBUFFER,0);
+}
+
+GLuint Framebuffer::use_ret()
+{
+	GLuint last_frame_buffer=getCurrentFramebuffer();
 	glBindFramebuffer(GL_FRAMEBUFFER,frame_buffer);
 	return last_frame_buffer;
 }
 
 void Framebuffer::blitToScreen()
 {
-	GLuint last_frame_buffer;
-	glGetIntegerv(GL_FRAMEBUFFER_BINDING,&last_frame_buffer);
+
+}
+
+void Framebuffer::renderToScreen()
+{
 	glBindFramebuffer(GL_FRAMEBUFFER,frame_buffer);
-	GLuint last_shader_program=ShaderProgram::getDefaultShaderProgram().use_ret();
+	GLuint last_shader_program=ShaderProgram::getDefaultShaderProgram().use();
 	//绘制到屏幕
 
-	glBindFramebuffer(GL_FRAMEBUFFER,last_frame_buffer);
-	glUseProgram(last_shader_program);
+	glBindFramebuffer(GL_FRAMEBUFFER,0);
 }

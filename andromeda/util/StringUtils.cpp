@@ -1,6 +1,36 @@
-#include "Utils.hpp"
+#include "StringUtils.hpp"
 
 #include <string.h>
+
+using namespace andromeda::util;
+
+bool andromeda::util::parseBool(const char* value)
+{
+	return strcmp(value,"true")?true:false;
+}
+
+const char* andromeda::util::str_cpy(const char* str)
+{
+	size_t len=strlen(str);
+	char* cpy=(char*)malloc(sizeof(char)*(len+1));
+	*(cpy+len)='\0';
+	memcpy(cpy,str,len);
+	return (const char*)cpy;
+}
+
+ArrayList<const char*>andromeda::util::split(const char* str,const char* delim)
+{
+	ArrayList<const char*>arr;
+	char* cpy=(char*)str_cpy(str);
+	char* splited_str=strtok(cpy,delim); //strtok会改变原字符串，因此要先拷贝
+	while(splited_str)
+	{
+		arr.add((const char*)splited_str);
+		splited_str=strtok(0,delim);
+	}
+	free(cpy);
+	return arr;
+}
 
 void andromeda::util::packBitsToBytes(unsigned char* bits,int bits_start_pos,unsigned char* bytes,int bytes_start_pos,long int bits_length)
 {

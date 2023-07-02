@@ -1,8 +1,7 @@
 #ifndef ANDROMEDA_GRAPHICS_SHADERPROGRAM
 #define ANDROMEDA_GRAPHICS_SHADERPROGRAM
 
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
+#include "../../lib/opengl/glad/glad.h"
 
 namespace andromeda {
 	namespace graphics {
@@ -58,11 +57,12 @@ namespace andromeda {
 				return checkShaderProgram(shader_program,print_log);
 			}
 
-			__attribute__((always_inline))     inline static ShaderProgram& getDefaultShaderProgram() //获取默认着色程序
+			__attribute__((always_inline))  static inline ShaderProgram& getDefaultShaderProgram() //获取默认着色程序
 			{
 				return default_shader_program;
 			}
 
+			//适用于偶尔设置变量值（glGetUniformLocation查询代价高昂避免循环调用！），设置前后不改变当前着色器程序
 			void setInt(const char* name,int value); //设置程序中的变量值，OpenGL不支持从着色器程序返回变量值
 			void setUnsignedInt(const char* name,unsigned int value);
 			void setFloat(const char* name,float value);
@@ -70,7 +70,66 @@ namespace andromeda {
 			void setUnsignedIntArray(const char* name,int count,unsigned int* value_arr);
 			void setFloatArray(const char* name,int count,float* value_arr);
 			void setMatrix4fv(const char* name,int count,bool transpose,const float* value);
-			void setBool(const char* name,bool value);
+			void setBool(const char* name,bool value); //调用setUnsignedInt设置为0或1
+
+			//适用于频繁设置变量值，使用前使用use()设定着色器后才可以调用set()和setArray()
+			class Variable
+			{
+			private:
+				GLuint shader_program;
+				GLint var_loc;
+			public:
+				operator GLint()
+				{
+					return var_loc;
+				}
+
+				inline Variable(GLuint shader_program,const char* name) :
+						shader_program(shader_program)
+				{
+					var_loc=glGetUniformLocation(shader_program,name);
+				}
+
+				inline void use()
+				{
+					glUseProgram(shader_program);
+				}
+
+				inline void set(int value)
+				{
+					glUniform1i(var_loc,value);
+				}
+
+				inline void set(unsigned int value)
+				{
+					glUniform1ui(var_loc,value);
+				}
+
+				inline void set(float value)
+				{
+					glUniform1f(var_loc,value);
+				}
+
+				inline void setArray(int count,int* value_arr)
+				{
+					glUniform1iv(var_loc,value_arr);
+				}
+
+				inline void setArray(int count,unsigned int* value_arr)
+				{
+					glUniform1uiv(var_loc,value_arr);
+				}
+
+				inline void setArray(int count,float* value_arr)
+				{
+					glUniform1fv(var_loc,value_arr);
+				}
+			};
+
+			Variable getVariable(const char* name)
+			{
+				return Variable(shader_program,name);
+			}
 		};
 
 		extern ShaderProgram default_shader_program;

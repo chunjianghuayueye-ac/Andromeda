@@ -1,5 +1,8 @@
-#ifndef ANDROMEDA_UTIL_UTILS
-#define ANDROMEDA_UTIL_UTILS
+#ifndef ANDROMEDA_UTIL_STRINGUTILS
+#define ANDROMEDA_UTIL_STRINGUTILS
+
+#include <string.h>
+#include "ArrayList.hpp"
 
 namespace andromeda {
 	namespace util {
@@ -7,6 +10,10 @@ namespace andromeda {
 		extern void packBitsToBytes(unsigned char* bits,int bits_start_pos,unsigned char* bytes,int bytes_start_pos,long int bits_length);
 		extern const char* int_to_string_dec(int num);
 
+		extern bool parseBool(const char* value); //当value为"true"时返回true，其他时候返回false
+		extern ArrayList<const char*>split(const char* str,const char* delim); //编译器将优化，直接在调用处构造返回值
+
+		extern const char* str_cpy(const char* str); //拷贝字符串
 		extern const char* str_join(const char* str1,const char* str2);
 		extern const char* str_join(const char* str1,int num);
 		extern const char* str_join(int num,const char* str1);
@@ -36,7 +43,7 @@ namespace andromeda {
 		}
 
 		template<typename T>
-		__attribute__((always_inline)) inline void* memasgn(void* ptr,T &&value)
+		__attribute__((always_inline)) inline void* memasgn(void* ptr,T &&value) //浅拷贝对象到给定指针
 		{
 			return memcpy(ptr,&value,sizeof(T));
 		}
@@ -51,6 +58,10 @@ namespace andromeda {
 			return (char)(num+48);
 		}
 		const char* int_to_string_dec(int num);
+		inline int char_to_int_0_to_9(char ch)
+		{
+			return (int)(ch-48);
+		}
 
 		template<typename T1>
 		const char* str_join(T1 str1)
@@ -70,4 +81,4 @@ namespace andromeda {
 	}
 }
 
-#endif // ANDROMEDA_UTIL_UTILS
+#endif // ANDROMEDA_UTIL_STRINGUTILS
