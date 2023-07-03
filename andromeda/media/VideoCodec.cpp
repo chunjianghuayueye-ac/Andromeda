@@ -46,13 +46,13 @@ void VideoCodec::deconstruct()
 {
 	if(codec_context)
 	{
-		avcodec_close (codec_context);
+		avcodec_close(codec_context);
 		avcodec_free_context(&codec_context);
 	}
 	if(frame)
-		av_frame_free (&frame);
+		av_frame_free(&frame);
 	if(packet)
-		av_packet_free (&packet);
+		av_packet_free(&packet);
 	codec=nullptr;
 	codec_context=nullptr;
 	frame=nullptr;
@@ -100,7 +100,7 @@ void VideoCodec::applySettings(void)
 	{
 		if(codec_context->width==properties->width&&codec_context->height==properties->height)
 			goto NO_ALLOC;
-		av_frame_free (&frame);
+		av_frame_free(&frame);
 		is_buf_alloc=false;
 		frame=nullptr;
 	}
@@ -138,7 +138,7 @@ void VideoCodec::applySettings(void)
 void VideoCodec::loadYUV444PDataFromRasterImageToFrame(RasterImage &img,AVFrame *frame_)
 {
 	frame_->format=AV_PIX_FMT_YUV444P;
-	convertRGBA32Tou255YUV444P((unsigned char*)(img.getPixelDataPtr()),img.width,img.height,0,0,0,(unsigned char*)frame_->data[0],frame_->linesize[0],(unsigned char*)frame_->data[1],frame_->linesize[1],(unsigned char*)(frame_->data[2]),frame_->linesize[2]);
+	convertRGBA32Tou255YUV444P((unsigned char*)(img.getPixelDataPtr()),img.getWidth(),img.getHeight(),0,0,0,(unsigned char*)frame_->data[0],frame_->linesize[0],(unsigned char*)frame_->data[1],frame_->linesize[1],(unsigned char*)(frame_->data[2]),frame_->linesize[2]);
 }
 
 void VideoCodec::openOutputBitstreamFile(const char* file)

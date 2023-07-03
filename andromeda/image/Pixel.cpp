@@ -1,8 +1,7 @@
 #include "Pixel.hpp"
 
-#include "color/ColorRGBA.hpp"
+#include "ColorRGBA.hpp"
 
-using namespace andromeda::image::color;
 using namespace andromeda::image;
 
 Pixel::Pixel(int i_r,int i_g,int i_b,int i_a) :

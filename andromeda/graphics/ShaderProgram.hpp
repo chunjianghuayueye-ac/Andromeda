@@ -57,7 +57,7 @@ namespace andromeda {
 				return checkShaderProgram(shader_program,print_log);
 			}
 
-			__attribute__((always_inline))  static inline ShaderProgram& getDefaultShaderProgram() //获取默认着色程序
+			__attribute__((always_inline))   static inline ShaderProgram& getDefaultShaderProgram() //获取默认着色程序
 			{
 				return default_shader_program;
 			}
@@ -112,17 +112,17 @@ namespace andromeda {
 
 				inline void setArray(int count,int* value_arr)
 				{
-					glUniform1iv(var_loc,value_arr);
+					glUniform1iv(var_loc,count,value_arr);
 				}
 
 				inline void setArray(int count,unsigned int* value_arr)
 				{
-					glUniform1uiv(var_loc,value_arr);
+					glUniform1uiv(var_loc,count,value_arr);
 				}
 
 				inline void setArray(int count,float* value_arr)
 				{
-					glUniform1fv(var_loc,value_arr);
+					glUniform1fv(var_loc,count,value_arr);
 				}
 			};
 

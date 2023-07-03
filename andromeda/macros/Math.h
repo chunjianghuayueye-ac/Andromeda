@@ -18,7 +18,7 @@
 #define getSmallerNumber(x,y) (x<y?x:y)
 #define getAbsoluteValue(n) (n<0?-n:n)
 #define getLightChannelInt(i) (i<0.0?0.0:(i<255.0?i/255.0:1.0))
-#define getLightChannelInt(f) (f<0.0?0.0:(f<1.0?f:1.0))
+#define getLightChannelFloat(f) (f<0.0?0.0:(f<1.0?f:1.0))
 #define getChrominaceChannelInt(i) (i<-127.5?-0.5:(i>127.5?0.5:i/255))
 #define getChrominaceChannelFloat(f) (f<-0.5?-0.5:(f>0.5?0.5:f))
 #define getPixelLightInt(i) (i<0?0:(i<255?i:255))

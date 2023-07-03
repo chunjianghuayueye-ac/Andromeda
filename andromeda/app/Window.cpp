@@ -2,8 +2,9 @@
 #include "../macros/Debug.h"
 
 using namespace andromeda::app;
+using namespace andromeda::image;
 
-Window::Window(const char* title,int width,int height,bool isfullscreen,andromeda::image::color::ColorRGBA backColor_,GLFWmonitor* monitor_) :
+Window::Window(const char* title,int width,int height,bool isfullscreen,ColorRGBA backColor_,GLFWmonitor* monitor_) :
 		width(width), height(height), isFullScreen(isfullscreen), title(title), backColor(backColor_), monitor(monitor_)
 {
 	if(!title)

@@ -2,16 +2,13 @@
 #define ANDROMEDA_IMAGE_PIXEL
 
 #include <stdint.h>
-#include "color/ColorRGBA.hpp"
+#include "ColorRGBA.hpp"
 #include "ColorChannel.hpp"
 #include "../macros/Math.h"
 
 namespace andromeda {
 	namespace image {
-		namespace color{
-			class ColorRGBA;
-		}
-
+		class ColorRGBA;
 		class Pixel
 		{
 		public:
@@ -19,14 +16,14 @@ namespace andromeda {
 
 			Pixel(int i_r=0,int i_g=0,int i_b=0,int i_a=0);
 			Pixel(float f_r,float f_g,float f_b,float f_a=0);
-			Pixel(color::ColorRGBA color);
+			Pixel(ColorRGBA color);
 
 			inline bool operator==(Pixel destpixel)
 			{
 				return (r==destpixel.r&&g==destpixel.g&&b==destpixel.b&&a==destpixel.a);
 			}
 
-			color::ColorRGBA toColorRGBA();
+			ColorRGBA toColorRGBA();
 
 			inline uint32_t packToInt()
 			{

@@ -40,6 +40,7 @@ void VertexAttribute::use()
 	{
 		VertexAttribute::VertexAttributeInfo& attrib=attribs[i];
 		glVertexAttribPointer(attrib.index,attrib.num,attrib.type,attrib.normalized,vertex_size,(void*)(attrib.offset));
+		glEnableVertexAttribArray(attrib.index);
 	}
 }
 

@@ -21,12 +21,18 @@ size_t andromeda::util::getGLTypeSize(GLint type)
 		return sizeof(float);
 	case GL_DOUBLE:
 		return sizeof(double);
+#ifdef GL_2_BYTES
 	case GL_2_BYTES:
 		return sizeof(char)*2;
+#endif
+#ifdef GL_3_BYTES
 	case GL_3_BYTES:
 		return sizeof(char)*3;
+#endif
+#ifdef GL_4_BYTES
 	case GL_4_BYTES:
 		return sizeof(char)*4;
+#endif
 	}
 	return 0; //返回0表示查询失败，传入的type不是OpenGL的数据类型
 }
@@ -58,21 +64,27 @@ GLuint andromeda::util::getGLType(const char* str)
 				return GL_UNSIGNED_INT;
 			}
 		break;
+#ifdef GL_2_BYTES
 	case '2':
 		if(at_least_2_chars)
 			if(*(str+1)=='b')
 				return GL_2_BYTES;
 		break;
+#endif
+#ifdef GL_3_BYTES
 	case '3':
 		if(at_least_2_chars)
 			if(*(str+1)=='b')
 				return GL_3_BYTES;
 		break;
+#endif
+#ifdef GL_4_BYTES
 	case '4':
 		if(at_least_2_chars)
 			if(*(str+1)=='b')
 				return GL_4_BYTES;
 		break;
+#endif
 	}
 	return GL_NONE;
 }

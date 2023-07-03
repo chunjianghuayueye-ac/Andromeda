@@ -69,7 +69,7 @@ namespace andromeda {
 			 * n表示normalized，不加则表示不规范化。后面加数字表示数据个数（必须是1-4），最后是类型名称，类型名称定义如下
 			 * b，ub，s，us，i，ui，f，d，除顶点名称其余应严格小写
 			 */
-			void setAttribute(const char* attrib_str="position:3f,texture_coord:2f");
+			void setAttribute(const char* attrib_str="position:3f,vertex_color:4f,texture_coord:2f");
 			void use();
 			VertexAttributeInfo getVertexAttributeInfo(const char* attrib_name);
 

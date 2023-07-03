@@ -7,7 +7,7 @@
 #ifdef DEBUG_CMD
 
 #include <iostream>
-#include "../util/Utils.hpp"
+#include "../util/StringUtils.hpp"
 
 #define PRINT_MESSAGE(...) {std::cout<<(andromeda::util::str_join<>(__VA_ARGS__))<<std::endl;}
 

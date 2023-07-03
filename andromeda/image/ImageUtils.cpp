@@ -2,12 +2,11 @@
 
 #include "../macros/ImageProcess.h"
 #include "../macros/Math.h"
-#include "color/ColorRGBA.hpp"
+#include "ColorRGBA.hpp"
 #include "RasterImage.hpp"
 #include "Pixel.hpp"
 
 using namespace andromeda::image;
-using namespace andromeda::image::color;
 
 Pixel* andromeda::image::generatePixelData(int width,int height,int r,int g,int b,int a)
 {
@@ -25,7 +24,7 @@ void andromeda::image::fillPixelData(void *data,int height,int width,int r,int g
 
 int andromeda::image::traversalPixels(RasterImage& image,traversal_func func,int x,int y,int stride_x,int stride_y,image_edge_options op)
 {
-	register int w=image.width,h=image.height,traversaled_count=0;
+	register int w=image.getWidth(),h=image.getHeight(),traversaled_count=0;
 	register image_edge_options exec_flag_x,exec_flag_y=op;
 	LOOP_Y:if(stride_x>w)
 		return 0;

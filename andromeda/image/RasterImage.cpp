@@ -9,14 +9,15 @@
 #include "../macros/ImageProcess.h"
 #include "Pixel.hpp"
 #include "ImageUtils.hpp"
-#include "color/ColorRGBA.hpp"
+#include "ColorRGBA.hpp"
 
 using namespace andromeda::image;
-using namespace andromeda::image::color;
 
 RasterImage::RasterImage(int img_width,int img_height,Pixel* data) :
 		height(img_height), width(img_width), pixels(data)
 {
+	if(!data)
+		pixels=(Pixel*)malloc(sizeof(Pixel)*img_width*img_height);
 }
 
 RasterImage RasterImage::copyRasterImage()
@@ -29,7 +30,7 @@ RasterImage RasterImage::copyRasterImage()
 
 void RasterImage::allocate()
 {
-	pixels=(Pixel*)malloc(width*height*sizeof(Pixel));
+	pixels=(Pixel*)malloc(sizeof(Pixel)*width*height);
 }
 
 RasterImage& RasterImage::readImage(const char* image_path)

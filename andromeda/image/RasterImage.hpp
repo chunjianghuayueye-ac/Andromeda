@@ -10,9 +10,27 @@ namespace andromeda {
 		class RasterImage
 		{
 		public:
-			int height,width;
+			operator Pixel*()
+			{
+				return pixels;
+			}
 
-			RasterImage(int img_width=0,int img_height=0,Pixel* data=(Pixel*)malloc(0));
+			operator unsigned char*()
+			{
+				return (unsigned char*)pixels;
+			}
+
+			operator void*()
+			{
+				return (void*)pixels;
+			}
+
+			operator const void*()
+			{
+				return (const void*)pixels;
+			}
+
+			RasterImage(int img_width=0,int img_height=0,Pixel* data=nullptr);//data指定为nullptr则自动分配内存
 
 			static RasterImage& readImage(const char* image_path);
 			void writeImage(const char* image_path);
@@ -24,14 +42,28 @@ namespace andromeda {
 				return pixels;
 			}
 
+			inline int getWidth()
+			{
+				return width;
+			}
+
+			inline int getHeight()
+			{
+				return height;
+			}
+
 			void allocate();
+			inline void release()
+			{
+				free((void*)pixels);
+			}
 
 			void setPixel(int x,int y,Pixel new_pixel)
 			{
 				*(Pixel*)(pixels+width*y+x)=new_pixel;
 			}
 
-			void setPixel(int x,int y,color::ColorRGBA new_pixel_color)
+			void setPixel(int x,int y,ColorRGBA new_pixel_color)
 			{
 				*(Pixel*)(pixels+width*y+x)=new_pixel_color.toPixel();
 			}
@@ -52,7 +84,8 @@ namespace andromeda {
 
 			void setPixelData(Pixel* data,int img_width,int img_height,image_size_options op); //设置某个区域的图像，将覆盖区域原本的数据
 		protected:
-			Pixel* pixels;
+			int height=0,width=0;
+			Pixel* pixels=nullptr;
 		};
 	}
 }

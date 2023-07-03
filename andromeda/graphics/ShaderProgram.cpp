@@ -15,7 +15,7 @@ ShaderProgram::ShaderProgram(GLuint shader_program) :
 {
 }
 
-ShaderProgram::ShaderProgram(const char* vertex_shader_source=pass_vertex_shader,const char* fragment_shader_source=default_fragment_shader)
+ShaderProgram::ShaderProgram(const char* vertex_shader_source,const char* fragment_shader_source)
 {
 	setVertexShader(vertex_shader_source);
 	setFragmentShader(fragment_shader_source);
@@ -29,7 +29,7 @@ bool ShaderProgram::checkVertexShader(GLuint vertex_shader,bool print_log)
 	{
 		char info[512];
 		glGetShaderInfoLog(vertex_shader,512,NULL,info);
-		PRINT_MESSAGE("Vertex Shader compile failed:",info,"\nSource:",vertex_shader_source)
+		PRINT_MESSAGE("Vertex Shader compile failed:",info,"\nID:",vertex_shader)
 	}
 	return (bool)success;
 }
@@ -42,7 +42,7 @@ bool ShaderProgram::checkFragmentShader(GLuint fragment_shader,bool print_log)
 	{
 		char info[512];
 		glGetShaderInfoLog(fragment_shader,512,NULL,info);
-		PRINT_MESSAGE("Fragment Shader compile failed:",info,"\nSource:",fragment_shader)
+		PRINT_MESSAGE("Fragment Shader compile failed:",info,"\nID:",fragment_shader)
 	}
 	return (bool)success;
 }
@@ -55,12 +55,12 @@ bool ShaderProgram::checkShaderProgram(GLuint shader_program,bool print_log)
 	{
 		char info[512];
 		glGetProgramInfoLog(shader_program,512,NULL,info);
-		PRINT_MESSAGE("Shader Program link failed:",info)
+		PRINT_MESSAGE("Shader Program link failed:",info,"\nID:",shader_program)
 	}
 	return (bool)success;
 }
 
-bool ShaderProgram::setVertexShader(const char* vertex_shader_source=pass_vertex_shader)
+bool ShaderProgram::setVertexShader(const char* vertex_shader_source)
 {
 	GLuint new_vertex_shader=glCreateShader(GL_VERTEX_SHADER);
 	glShaderSource(new_vertex_shader,1,&vertex_shader_source,NULL);
@@ -68,7 +68,7 @@ bool ShaderProgram::setVertexShader(const char* vertex_shader_source=pass_vertex
 	return setVertexShader(new_vertex_shader);
 }
 
-bool ShaderProgram::setFragmentShader(const char* fragment_shader_source=default_fragment_shader)
+bool ShaderProgram::setFragmentShader(const char* fragment_shader_source)
 {
 	GLuint new_fragment_shader=glCreateShader(GL_FRAGMENT_SHADER);
 	glShaderSource(new_fragment_shader,1,&fragment_shader_source,NULL);
@@ -141,10 +141,10 @@ bool ShaderProgram::linkProgram(bool release_shader)
 
 GLuint ShaderProgram::use_ret()
 {
-	GLuint last_shader_program;
+	GLint last_shader_program;
 	glGetIntegerv(GL_CURRENT_PROGRAM,&last_shader_program);
 	glUseProgram(shader_program);
-	return last_shader_program;
+	return (GLuint)last_shader_program;
 }
 
 void ShaderProgram::releaseShader()
@@ -212,9 +212,28 @@ void ShaderProgram::setMatrix4fv(const char* name,int count,bool transpose,const
 namespace andromeda {
 	namespace graphics {
 		//传递顶点着色器
-		const char* pass_vertex_shader="";
+		const char* pass_vertex_shader="#version 330 core\n\
+										layout (location=0) in vec3 vertex_position;\n\
+										layout (location=1) in vec4 vertex_color;\n\
+										layout (location=2) in vec2 vertex_texture_coord;\n\
+										out vec4 color;\n\
+										out vec2 texture_coord;\n\
+										void main()\n\
+										{\n\
+											gl_Position=vec4(position,1.0);\n\
+											color=vertex_color;\n\
+											texture_coord=vertex_texture_coord;\n\
+										}";
 		//默认片段着色器
-		const char* default_fragment_shader="";
+		const char* default_fragment_shader="#version 330 core\n\
+											in vec4 color;\n\
+											in vec2 texture_coord;\n\
+											out vec4 fragment_color;\n\
+											uniform sampler2D texture_2d;\n\
+											void main()\n\
+											{\n\
+												fragment_color=texture(texture_2d,texture_coord)*color;\n\
+											}";
 		//默认着色程序
 		ShaderProgram default_shader_program(pass_vertex_shader,default_fragment_shader);
 	}

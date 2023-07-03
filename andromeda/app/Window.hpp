@@ -3,7 +3,7 @@
 
 #include "../../lib/opengl/glad/glad.h"
 #include "../../lib/opengl/GLFW/glfw3.h"
-#include "../image/color/ColorRGBA.hpp"
+#include "../image/ColorRGBA.hpp"
 #include "../image/ColorChannel.hpp"
 
 namespace andromeda {
@@ -16,23 +16,23 @@ namespace andromeda {
 			int width,height;
 			bool isFullScreen;
 			const char* title;
-			andromeda::image::color::ColorRGBA backColor;
+			andromeda::image::ColorRGBA backColor;
 
 		public:
-			Window()=default;//该构造函数不会实际初始化窗口仅分配内存，需要重新调用其他构造函数以正常工作
-			Window(const char* title,int width=800,int height=600,bool isfullscreen=false,andromeda::image::color::ColorRGBA backColor_={0,0,0,0},GLFWmonitor* monitor_=glfwGetPrimaryMonitor());
+			Window()=default; //该构造函数不会实际初始化窗口仅分配内存，需要重新调用其他构造函数以正常工作
+			Window(const char* title,int width=800,int height=600,bool isfullscreen=false,andromeda::image::ColorRGBA backColor_={0,0,0,0},GLFWmonitor* monitor_=glfwGetPrimaryMonitor());
 
 			inline operator GLFWwindow*()
 			{
 				return windowID;
 			}
 
-			inline void setBackColor(andromeda::image::color::ColorRGBA backColor_={0,0,0,0})
+			inline void setBackColor(andromeda::image::ColorRGBA backColor_={0,0,0,0})
 			{
 				backColor=backColor_;
 			}
 
-			inline andromeda::image::color::ColorRGBA getBackColor()
+			inline andromeda::image::ColorRGBA getBackColor()
 			{
 				return backColor;
 			}
@@ -101,6 +101,11 @@ namespace andromeda {
 			{
 				glfwSetWindowOpacity(windowID,opacity);
 				return glfwGetWindowOpacity(windowID); //返回当前的窗口透明度。如果设置成功则应该返回opacity
+			}
+
+			inline void setWindowMouseEventPassthrough(bool passthrough) //设置窗口透明部分鼠标事件是否穿透
+			{
+				glfwWindowHint(GLFW_MOUSE_PASSTHROUGH,passthrough);
 			}
 		};
 	}

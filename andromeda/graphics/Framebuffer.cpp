@@ -3,7 +3,7 @@
 #include "ShaderProgram.hpp"
 
 using namespace andromeda::graphics;
-using namespace andromeda::image::color;
+using namespace andromeda::image;
 
 Framebuffer::Framebuffer(int width,int height,ColorRGBA clearColor) :
 		width(width), height(height), clearColor(clearColor)
@@ -48,7 +48,7 @@ void Framebuffer::alloc(bool try_again)
 
 GLuint Framebuffer::getFramebufferTexture(GLuint dest_frame_buffer,int texture_attachment) //传入颜色缓冲序号
 {
-	GLuint dest_texture;
+	GLint dest_texture;
 	glBindFramebuffer(GL_FRAMEBUFFER,dest_frame_buffer);
 	if(dest_frame_buffer) //用户创建缓冲
 		glGetFramebufferAttachmentParameteriv(GL_FRAMEBUFFER,GL_COLOR_ATTACHMENT0+texture_attachment,GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME,&dest_texture);
@@ -56,16 +56,16 @@ GLuint Framebuffer::getFramebufferTexture(GLuint dest_frame_buffer,int texture_a
 		//默认缓冲
 		glGetFramebufferAttachmentParameteriv(GL_FRAMEBUFFER,GL_FRONT_LEFT+texture_attachment,GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME,&dest_texture);
 	glBindFramebuffer(GL_FRAMEBUFFER,0);
-	return dest_texture;
+	return (GLuint)dest_texture;
 }
 
 GLuint Framebuffer::getFramebufferDepthStencil(GLuint dest_frame_buffer) //传入颜色缓冲序号
 {
-	GLuint dest_depth_stencil;
+	GLint dest_depth_stencil;
 	glBindFramebuffer(GL_FRAMEBUFFER,dest_frame_buffer);
 	glGetFramebufferAttachmentParameteriv(GL_FRAMEBUFFER,GL_DEPTH_STENCIL_ATTACHMENT,GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME,&dest_depth_stencil);
 	glBindFramebuffer(GL_FRAMEBUFFER,0);
-	return dest_depth_stencil;
+	return (GLuint)dest_depth_stencil;
 }
 
 void Framebuffer::copyColorBuffer(GLuint dest_frame_buffer,int color_buffer_attachment)
@@ -93,7 +93,7 @@ void Framebuffer::blitToScreen()
 void Framebuffer::renderToScreen()
 {
 	glBindFramebuffer(GL_FRAMEBUFFER,frame_buffer);
-	GLuint last_shader_program=ShaderProgram::getDefaultShaderProgram().use();
+	ShaderProgram::getDefaultShaderProgram().use();
 	//绘制到屏幕
 
 	glBindFramebuffer(GL_FRAMEBUFFER,0);

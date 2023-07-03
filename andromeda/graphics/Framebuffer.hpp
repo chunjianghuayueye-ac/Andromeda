@@ -2,7 +2,7 @@
 #define ANDROMEDA_GRAPHICS_FRAMEBUFFER
 
 #include "../../lib/opengl/glad/glad.h"
-#include "../image/color/ColorRGBA.hpp"
+#include "../image/ColorRGBA.hpp"
 
 //BUFFER_SIZE宏用于得到分配内存使用的实际尺寸，在Mac OS上尺寸要乘以2
 #ifdef __APPLE__
@@ -21,7 +21,7 @@ namespace andromeda {
 			GLuint depth_stencil_buffer;
 			int width,height;
 			bool allocated=false;
-			andromeda::image::color::ColorRGBA clearColor;
+			andromeda::image::ColorRGBA clearColor;
 
 		public:
 			inline operator GLuint()
@@ -29,24 +29,24 @@ namespace andromeda {
 				return frame_buffer;
 			}
 
-			Framebuffer(int width,int height,andromeda::image::color::ColorRGBA clearColor={0,0,0,0});
+			Framebuffer(int width,int height,andromeda::image::ColorRGBA clearColor={0,0,0,0});
 
-			inline void setClearColor(andromeda::image::color::ColorRGBA clearColor={0,0,0,0})
+			inline void setClearColor(andromeda::image::ColorRGBA clearColor={0,0,0,0})
 			{
 				this->clearColor=clearColor;
 				glClearColor(clearColor.r,clearColor.g,clearColor.b,clearColor.a);
 			}
 
-			inline andromeda::image::color::ColorRGBA getClearColor()
+			inline andromeda::image::ColorRGBA getClearColor()
 			{
 				return clearColor;
 			}
 			//OpenGL的查询代价高昂，应当尽量避免查询
 			static inline GLuint getCurrentFramebuffer()
 			{
-				GLuint current_frame_buffer;
+				GLint current_frame_buffer;
 				glGetIntegerv(GL_FRAMEBUFFER_BINDING,&current_frame_buffer);
-				return current_frame_buffer;
+				return (GLuint)current_frame_buffer;
 			}
 
 			static GLuint getFramebufferTexture(GLuint dest_frame_buffer,int texture_attachment=0); //传入颜色缓冲序号，如果传入dest_frame_buffer=0（默认帧缓冲）则依照texture_attachment次序由0-3返回GL_FRONT_LEFT,GL_BACK_LEFT,GL_FRONT_RIGHT,GL_BACK_RIGHT

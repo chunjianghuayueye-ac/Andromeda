@@ -8,7 +8,7 @@
 #include "../macros/Math.h"
 #include "PCMAudio.hpp"
 #include "Sample.hpp"
-#include "../util/Utils.hpp"
+#include "../util/StringUtils.hpp"
 
 namespace andromeda {
 	namespace media {
