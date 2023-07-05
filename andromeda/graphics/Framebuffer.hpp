@@ -22,13 +22,20 @@ namespace andromeda {
 			int width,height;
 			bool allocated=false;
 			andromeda::image::ColorRGBA clearColor;
+			GLuint frame_vertex_buffer; //用于渲染到屏幕使用
+			GLuint frame_element_buffer;
 
 		public:
+			//依次序为左下角、左上角、右下角、右上角，包含位置（NDC坐标）、顶点颜色、纹理坐标
+			static float full_screen_ndc_vertices_data[];
+			static unsigned int full_screen_ndc_vertices_elements[4];
+
 			inline operator GLuint()
 			{
 				return frame_buffer;
 			}
 
+			Framebuffer()=default;//不会实际初始化和分配缓冲id，需要使用placement-new重新调用Framebuffer(int,int,ColorRGBA)进行初始化才可以正常使用
 			Framebuffer(int width,int height,andromeda::image::ColorRGBA clearColor={0,0,0,0});
 
 			inline void setClearColor(andromeda::image::ColorRGBA clearColor={0,0,0,0})
@@ -40,6 +47,26 @@ namespace andromeda {
 			inline andromeda::image::ColorRGBA getClearColor()
 			{
 				return clearColor;
+			}
+
+			inline void setFramebufferWidth(int new_width)
+			{
+				width=new_width;
+			}
+
+			inline void setFramebufferHeight(int new_height)
+			{
+				height=new_height;
+			}
+
+			inline int getFramebufferWidth()
+			{
+				return width;
+			}
+
+			inline int getFramebufferHeight()
+			{
+				return height;
 			}
 			//OpenGL的查询代价高昂，应当尽量避免查询
 			static inline GLuint getCurrentFramebuffer()
@@ -62,26 +89,30 @@ namespace andromeda {
 				return getFramebufferDepthStencil(frame_buffer);
 			}
 
-			inline void clearAll() //清除所有缓存数据
+			__attribute__((always_inline)) inline void clearAll() //清除所有缓存数据
 			{
 				glClear(GL_DEPTH_BUFFER_BIT);
 				glClear(GL_STENCIL_BUFFER_BIT);
 				glClear(GL_COLOR_BUFFER_BIT);
 			}
 
-			inline void clear() //只清除颜色缓冲
+			__attribute__((always_inline)) inline void clear() //只清除颜色缓冲
 			{
 				glClear(GL_COLOR_BUFFER_BIT);
 			}
 
 			void alloc(bool try_again=true); //分配内存，需要在使用前最先调用。try_again用于分配失败时是否重新分配一次
 			GLuint use_ret(); //调用后将渲染到该Framebuffer对象上，返回之前绑定的Framebuffer的id
-			void copyColorBuffer(GLuint dest_frame_buffer,int color_buffer_attachment=0); //将本帧缓冲拷贝到另一个帧缓存上
+			void copyColorBuffer(GLuint dest_frame_buffer,int color_buffer_attachment=0); //将本帧缓冲拷贝到另一个帧缓存上。dest_frame_buffer=0则拷贝进屏幕缓冲，此时color_buffer_attachment参数无用
 
-			void renderToScreen(); //渲染完成后调用该函数将数据刷入屏幕缓存
-			void blitToScreen();
+			//渲染完成后调用该函数将数据渲染到屏幕缓存部分区域(采用NDC坐标)，渲染后frame_buffer绑定到0（屏幕缓冲）
+			void renderToScreen(float* vertex_arr); //vertex_arr需要指定四个点（依次序为左下角、左上角、右下角、右上角，包含位置、颜色、纹理坐标）用于渲染到屏幕缓冲，通常不需要调用这个函数
+			__attribute__((always_inline)) inline void blitToScreen() //完全填充屏幕缓存，内部使用renderToScreen()实现
+			{
+				renderToScreen(full_screen_ndc_vertices_data);
+			}
 
-			inline void use()
+			__attribute__((always_inline)) inline void use()
 			{
 				glBindFramebuffer(GL_FRAMEBUFFER,frame_buffer);
 			}

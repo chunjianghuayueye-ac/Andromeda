@@ -20,7 +20,7 @@ namespace andromeda {
 
 		public:
 			Window()=default; //该构造函数不会实际初始化窗口仅分配内存，需要重新调用其他构造函数以正常工作
-			Window(const char* title,int width=800,int height=600,bool isfullscreen=false,andromeda::image::ColorRGBA backColor_={0,0,0,0},GLFWmonitor* monitor_=glfwGetPrimaryMonitor());
+			Window(const char* title,int width=800,int height=600,andromeda::image::ColorRGBA backColor_={0,0,0,0},bool isfullscreen=false,GLFWmonitor* monitor_=glfwGetPrimaryMonitor());
 
 			inline operator GLFWwindow*()
 			{
@@ -70,8 +70,16 @@ namespace andromeda {
 				return *this;
 			}
 
-			inline Window& setWindowedFullScreen(bool isFullScreen_)
+			inline Window& setWindowed(bool windowed,int pos_x,int pos_y)
 			{
+				this->monitor=NULL;
+				glfwSetWindowMonitor(windowID,NULL,pos_x,pos_y,width,height,0);
+				return *this;
+			}
+
+			inline Window& setMonitor(GLFWmonitor* monitor)
+			{
+				this->monitor=monitor;
 				const GLFWvidmode* mode=glfwGetVideoMode(monitor);
 				glfwSetWindowMonitor(windowID,monitor,0,0,mode->width,mode->height,mode->refreshRate);
 				return *this;
@@ -103,10 +111,12 @@ namespace andromeda {
 				return glfwGetWindowOpacity(windowID); //返回当前的窗口透明度。如果设置成功则应该返回opacity
 			}
 
-			inline void setWindowMouseEventPassthrough(bool passthrough) //设置窗口透明部分鼠标事件是否穿透
+#ifdef GLFW_MOUSE_PASSTHROUGH
+			inline void setWindowMouseEventPassthrough(bool passthrough) //设置窗口透明部分鼠标事件是否穿透，glfw3.4版本及以上可用
 			{
 				glfwWindowHint(GLFW_MOUSE_PASSTHROUGH,passthrough);
 			}
+#endif
 		};
 	}
 }

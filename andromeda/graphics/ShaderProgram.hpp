@@ -7,7 +7,8 @@ namespace andromeda {
 	namespace graphics {
 		extern const char* pass_vertex_shader;
 		extern const char* default_fragment_shader;
-
+		class ShaderProgram;
+		extern ShaderProgram default_shader_program;
 		class ShaderProgram
 		{
 		private:
@@ -59,7 +60,7 @@ namespace andromeda {
 
 			__attribute__((always_inline))   static inline ShaderProgram& getDefaultShaderProgram() //获取默认着色程序
 			{
-				return default_shader_program;
+				return andromeda::graphics::default_shader_program;
 			}
 
 			//适用于偶尔设置变量值（glGetUniformLocation查询代价高昂避免循环调用！），设置前后不改变当前着色器程序
@@ -131,8 +132,6 @@ namespace andromeda {
 				return Variable(shader_program,name);
 			}
 		};
-
-		extern ShaderProgram default_shader_program;
 	}
 }
 

@@ -1,6 +1,7 @@
 #include "Framebuffer.hpp"
 #include "../macros/Debug.h"
 #include "ShaderProgram.hpp"
+#include "VertexAttribute.hpp"
 
 using namespace andromeda::graphics;
 using namespace andromeda::image;
@@ -32,6 +33,8 @@ void Framebuffer::alloc(bool try_again)
 		glBindFramebuffer(GL_FRAMEBUFFER,0);
 		glBindTexture(GL_TEXTURE_2D,0);
 		glBindRenderbuffer(GL_RENDERBUFFER,0);
+		glGenBuffers(1,&frame_vertex_buffer);
+		glGenBuffers(1,&frame_element_buffer);
 	}
 	allocated=true;
 	if(glCheckFramebufferStatus(GL_FRAMEBUFFER)!=GL_FRAMEBUFFER_COMPLETE)
@@ -70,12 +73,17 @@ GLuint Framebuffer::getFramebufferDepthStencil(GLuint dest_frame_buffer) //´«ÈëÑ
 
 void Framebuffer::copyColorBuffer(GLuint dest_frame_buffer,int color_buffer_attachment)
 {
-	GLuint dest_texture=getFramebufferTexture(dest_frame_buffer,color_buffer_attachment);
-	glBindFramebuffer(GL_FRAMEBUFFER,dest_frame_buffer);
-	glBindTexture(GL_TEXTURE_2D,dest_texture);
-	glCopyTexSubImage2D(GL_TEXTURE_2D,0,0,0,0,0,width,height);
-	glBindTexture(GL_TEXTURE_2D,0);
-	glBindFramebuffer(GL_FRAMEBUFFER,0);
+	if(dest_frame_buffer)
+	{
+		GLuint dest_texture=getFramebufferTexture(dest_frame_buffer,color_buffer_attachment);
+		glBindFramebuffer(GL_FRAMEBUFFER,dest_frame_buffer);
+		glBindTexture(GL_TEXTURE_2D,dest_texture);
+		glCopyTexSubImage2D(GL_TEXTURE_2D,0,0,0,0,0,width,height);
+		glBindTexture(GL_TEXTURE_2D,0);
+		glBindFramebuffer(GL_FRAMEBUFFER,0);
+	}
+	else
+		blitToScreen();
 }
 
 GLuint Framebuffer::use_ret()
@@ -85,16 +93,19 @@ GLuint Framebuffer::use_ret()
 	return last_frame_buffer;
 }
 
-void Framebuffer::blitToScreen()
+void Framebuffer::renderToScreen(float* vertex_arr)
 {
-
-}
-
-void Framebuffer::renderToScreen()
-{
-	glBindFramebuffer(GL_FRAMEBUFFER,frame_buffer);
+	glBindFramebuffer(GL_FRAMEBUFFER,0);
+	VertexAttribute& vertex_attrib=VertexAttribute::getDefaultVertexAttribute();
+	vertex_attrib.use();
 	ShaderProgram::getDefaultShaderProgram().use();
 	//»æÖÆµ½ÆÁÄ»
-
-	glBindFramebuffer(GL_FRAMEBUFFER,0);
+	glBindBuffer(GL_ARRAY_BUFFER,frame_vertex_buffer);
+	glBufferData(GL_ARRAY_BUFFER,4*vertex_attrib.getVertexSize(),vertex_arr,GL_STATIC_DRAW);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,frame_element_buffer);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER,sizeof(full_screen_ndc_vertices_elements),full_screen_ndc_vertices_elements,GL_STATIC_DRAW);
+	glDrawElements(GL_TRIANGLE_STRIP,4,GL_UNSIGNED_INT,0);
 }
+
+float Framebuffer::full_screen_ndc_vertices_data[]={-1.0f,-1.0f,0.0f,1.0f,1.0f,1.0f,1.0f,0.0f,0.0f,-1.0f,1.0f,0.0f,1.0f,1.0f,1.0f,1.0f,0.0f,1.0f,1.0f,-1.0f,0.0f,1.0f,1.0f,1.0f,1.0f,1.0f,0.0f,1.0f,1.0f,0.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f};
+unsigned int Framebuffer::full_screen_ndc_vertices_elements[4]={0,1,2,3};

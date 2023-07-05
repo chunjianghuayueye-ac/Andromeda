@@ -32,10 +32,9 @@ void VertexAttribute::setAttribute(const char* attrib_str)
 		offset+=attrib_info.num*attrib_info.type_size; //下一个顶点（如果存在）的初始位置
 	}
 	vertex_size=offset;
-}
-
-void VertexAttribute::use()
-{
+	glDeleteVertexArrays(1,&vertex_array_object);
+	glGenVertexArrays(1,&vertex_array_object);
+	glBindVertexArray(vertex_array_object);
 	for(int i=0;i<attribs.getLength();++i)
 	{
 		VertexAttribute::VertexAttributeInfo& attrib=attribs[i];
@@ -50,4 +49,10 @@ VertexAttribute::VertexAttributeInfo VertexAttribute::getVertexAttributeInfo(con
 		if(strcmp(attribs[i].name,attrib_name))
 			return attribs[i];
 	return VertexAttribute::VertexAttributeInfo(); //无效查询
+}
+
+namespace andromeda {
+	namespace graphics {
+		VertexAttribute default_vertex_attribute("position:3f,vertex_color:4f,texture_coord:2f");
+	}
 }
