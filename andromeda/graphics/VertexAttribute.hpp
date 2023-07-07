@@ -7,8 +7,6 @@
 
 namespace andromeda {
 	namespace graphics {
-		class VertexAttribute;
-		extern VertexAttribute default_vertex_attribute;
 		class VertexAttribute
 		{
 		public:
@@ -23,6 +21,7 @@ namespace andromeda {
 				bool normalized=false;
 				int num=0;
 				size_t offset=0; //在单个顶点中的位移(因为顶点各个属性长度可以不一样，故统一用字节数表示位移)
+
 			public:
 				VertexAttributeInfo()=default;
 
@@ -63,9 +62,10 @@ namespace andromeda {
 				}
 			};
 		private:
-			GLuint vertex_array_object;//OpenGL的VAO对象，储存了顶点属性
+			GLuint vertex_array_object; //OpenGL的VAO对象，储存了顶点属性、VBO数据缓冲id（没有EBO）
 			size_t vertex_size=0;
 			andromeda::util::ArrayList<VertexAttributeInfo> attribs;
+			static VertexAttribute* default_vertex_attribute;
 		public:
 			VertexAttribute()=default;
 
@@ -85,9 +85,21 @@ namespace andromeda {
 			 */
 			void setAttribute(const char* attrib_str="position:3f,vertex_color:4f,texture_coord:2f");
 
-			inline void use()
+			__attribute__((always_inline)) inline void use() //在绑定、操作VBO之前调用
 			{
+				glDeleteVertexArrays(1,&vertex_array_object);
+				glGenVertexArrays(1,&vertex_array_object);
 				glBindVertexArray(vertex_array_object);
+			}
+
+			__attribute__((always_inline)) inline void load() //在glBindBuffer()后、glDraw*()前调用
+			{
+				for(int i=0;i<attribs.getLength();++i)
+				{
+					VertexAttribute::VertexAttributeInfo& attrib=attribs[i];
+					glVertexAttribPointer(attrib.index,attrib.num,attrib.type,attrib.normalized,vertex_size,(void*)(attrib.offset));
+					glEnableVertexAttribArray(attrib.index);
+				}
 			}
 
 			VertexAttributeInfo getVertexAttributeInfo(const char* attrib_name);
@@ -104,7 +116,9 @@ namespace andromeda {
 
 			static inline VertexAttribute& getDefaultVertexAttribute()
 			{
-				return andromeda::graphics::default_vertex_attribute;
+				if(!default_vertex_attribute)
+					default_vertex_attribute=new VertexAttribute("position:3f,vertex_color:4f,texture_coord:2f");
+				return *default_vertex_attribute;
 			}
 		};
 	}

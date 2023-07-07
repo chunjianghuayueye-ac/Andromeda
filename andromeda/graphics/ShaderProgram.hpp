@@ -7,14 +7,13 @@ namespace andromeda {
 	namespace graphics {
 		extern const char* pass_vertex_shader;
 		extern const char* default_fragment_shader;
-		class ShaderProgram;
-		extern ShaderProgram default_shader_program;
 		class ShaderProgram
 		{
 		private:
 			GLuint shader_program=0,vertex_shader=0,fragment_shader=0;
 			const char* vertex_shader_source=nullptr;
 			const char* fragment_shader_source=nullptr;
+			static ShaderProgram* default_shader_program;
 
 			ShaderProgram(GLuint shader_program);
 			ShaderProgram(GLuint shader_program,GLuint vertex_shader,GLuint fragment_shader);
@@ -58,9 +57,11 @@ namespace andromeda {
 				return checkShaderProgram(shader_program,print_log);
 			}
 
-			__attribute__((always_inline))   static inline ShaderProgram& getDefaultShaderProgram() //获取默认着色程序
+			__attribute__((always_inline)) static inline ShaderProgram& getDefaultShaderProgram() //获取默认着色程序
 			{
-				return andromeda::graphics::default_shader_program;
+				if(!default_shader_program)
+					default_shader_program=new ShaderProgram(pass_vertex_shader,default_fragment_shader);
+				return *default_shader_program;
 			}
 
 			//适用于偶尔设置变量值（glGetUniformLocation查询代价高昂避免循环调用！），设置前后不改变当前着色器程序

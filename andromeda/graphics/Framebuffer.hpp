@@ -22,8 +22,8 @@ namespace andromeda {
 			int width,height;
 			bool allocated=false;
 			andromeda::image::ColorRGBA clearColor;
-			GLuint frame_vertex_buffer; //用于渲染到屏幕使用
-			GLuint frame_element_buffer;
+			GLuint frame_vbo; //用于渲染到屏幕使用
+			GLuint frame_ebo;
 
 		public:
 			//依次序为左下角、左上角、右下角、右上角，包含位置（NDC坐标）、顶点颜色、纹理坐标
@@ -35,8 +35,13 @@ namespace andromeda {
 				return frame_buffer;
 			}
 
-			Framebuffer()=default;//不会实际初始化和分配缓冲id，需要使用placement-new重新调用Framebuffer(int,int,ColorRGBA)进行初始化才可以正常使用
-			Framebuffer(int width,int height,andromeda::image::ColorRGBA clearColor={0,0,0,0});
+			Framebuffer()=default; //构造函数不会实际初始化和分配缓冲id，这将在alloc()中执行
+			//构造函数疑难：下面的构造函数在头文件中定义可以正常工作，但在.cpp文件中定义则会访问空指针异常
+			Framebuffer(int width,int height,andromeda::image::ColorRGBA clearColor={0,0,0,0}) :
+					width(width), height(height)
+			{
+				setClearColor(clearColor);
+			}
 
 			inline void setClearColor(andromeda::image::ColorRGBA clearColor={0,0,0,0})
 			{
@@ -69,7 +74,7 @@ namespace andromeda {
 				return height;
 			}
 			//OpenGL的查询代价高昂，应当尽量避免查询
-			static inline GLuint getCurrentFramebuffer()
+			static GLuint getCurrentFramebuffer()
 			{
 				GLint current_frame_buffer;
 				glGetIntegerv(GL_FRAMEBUFFER_BINDING,&current_frame_buffer);

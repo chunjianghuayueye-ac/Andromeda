@@ -21,6 +21,11 @@ ColorRGBA::ColorRGBA(const Pixel pixel) :
 {
 }
 
+ColorRGBA::operator Pixel()
+{
+	return Pixel(r,g,b,a);
+}
+
 Pixel ColorRGBA::toPixel()
 {
 	return Pixel(r,g,b,a);

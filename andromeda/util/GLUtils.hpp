@@ -10,6 +10,8 @@ namespace andromeda {
 		 * b£¬ub£¬2b£¬3b£¬4b£¬s£¬us£¬i£¬ui£¬f£¬d
 		 */
 		extern GLuint getGLType(const char* str);
+		extern void clearOpenGLError();
+		extern void checkOpenGLError();
 	}
 }
 

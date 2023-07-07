@@ -14,7 +14,10 @@ namespace andromeda {
 		public:
 			DoubleFramebuffer()=default;
 
-			DoubleFramebuffer(int width,int height,andromeda::image::ColorRGBA clearColor={0,0,0,0});
+			DoubleFramebuffer(int width,int height,andromeda::image::ColorRGBA clearColor={0,0,0,0}) :
+					back_frame_buffer(width,height,clearColor)
+			{
+			}
 
 			void alloc(bool try_again=true); //分配内存
 
@@ -56,14 +59,13 @@ namespace andromeda {
 			__attribute__((always_inline)) inline void use()
 			{
 				back_frame_buffer.use();
+				back_frame_buffer.clear(); //清除当前帧的内容
 			}
 
 			__attribute__((always_inline)) inline void swap()
 			{
 				back_frame_buffer.blitToScreen(); //当前帧渲染到屏幕
 				glFlush();
-				back_frame_buffer.use();
-				back_frame_buffer.clear(); //清除当前帧的内容
 			}
 		};
 	}

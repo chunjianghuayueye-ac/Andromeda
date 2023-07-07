@@ -14,6 +14,8 @@ namespace andromeda {
 		public:
 			unsigned char r,g,b,a;
 
+			operator ColorRGBA();
+
 			Pixel(int i_r=0,int i_g=0,int i_b=0,int i_a=0);
 			Pixel(float f_r,float f_g,float f_b,float f_a=0);
 			Pixel(ColorRGBA color);

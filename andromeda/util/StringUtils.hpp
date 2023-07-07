@@ -11,7 +11,7 @@ namespace andromeda {
 		extern const char* int_to_string_dec(int num);
 
 		extern bool parseBool(const char* value); //当value为"true"时返回true，其他时候返回false
-		extern ArrayList<const char*>split(const char* str,const char* delim); //编译器将优化，直接在调用处构造返回值
+		extern ArrayList<const char*>split(const char* str,const char* delim); //编译器将优化，直接在调用处构造返回值。释放返回值中的所有字符串时只需调用free(arr[0])！
 
 		extern const char* str_cpy(const char* str); //拷贝字符串
 		extern const char* str_join(const char* str1,const char* str2);

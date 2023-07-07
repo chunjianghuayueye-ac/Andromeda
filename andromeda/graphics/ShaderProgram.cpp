@@ -209,6 +209,8 @@ void ShaderProgram::setMatrix4fv(const char* name,int count,bool transpose,const
 	glUseProgram(last_shader_program);
 }
 
+ShaderProgram* ShaderProgram::default_shader_program=nullptr;
+
 namespace andromeda {
 	namespace graphics {
 		//传递顶点着色器
@@ -234,7 +236,5 @@ namespace andromeda {
 											{\n\
 												fragment_color=texture(texture_2d,texture_coord)*color;\n\
 											}";
-		//默认着色程序
-		ShaderProgram default_shader_program(pass_vertex_shader,default_fragment_shader);
 	}
 }

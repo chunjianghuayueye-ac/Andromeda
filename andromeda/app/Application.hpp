@@ -48,16 +48,14 @@ def_cls_has_func(render_update)
 			bool isRunning=false;
 			MainLoopThread<Derived>* mainLoopThread=nullptr;
 			andromeda::util::ThreadTurn threadTurn;
-			andromeda::graphics::DoubleFramebuffer* doubleBuffer;//双缓冲
+			andromeda::graphics::DoubleFramebuffer doubleFramebuffer;//双缓冲
 			//主线程函数，负责事件处理和更新
 			//内部使用的初始化函数
-			void _initialize(bool isfullscreen=false,GLFWmonitor* monitor_=glfwGetPrimaryMonitor())
+			void _initialize()
 			{
 				isRunning=true;
 
 
-				window.setMonitor(monitor_);
-				window.setFullScreen(isfullscreen);
 				initialize();
 				glViewport(0,0,window.getWidth(),window.getHeight());
 			}
@@ -111,7 +109,7 @@ def_cls_has_func(render_update)
 				return &threadTurn;
 			}
 
-			Application(const char* window_title=nullptr,int width=800,int height=600,andromeda::image::ColorRGBA backColor_={0,0,0,0})
+			Application(const char* window_title=nullptr,int width=800,int height=600,andromeda::image::ColorRGBA backColor_={0,0,0,0},bool isfullscreen=false,GLFWmonitor* monitor_=glfwGetPrimaryMonitor())
 			{
 				bool init_app=true; //如果需要的库没有加载，则不初始化该类，无法使用该类
 				if(!andromeda::use_opengl)
@@ -133,16 +131,13 @@ def_cls_has_func(render_update)
 				synchronize_fps=true;//默认开启帧率同步
 				preinitialize();	//可以调用glfwWindowHint()，不可设置窗口参数、调用OpenGL函数，否则空指针异常
 				glfwWindowHint(GLFW_DOUBLEBUFFER,GLFW_FALSE);
-				new (&window) Window(window_title?window_title:"Andromeda Application",width,height,backColor_); //初始化window
+				new (&window) Window(window_title?window_title:"Andromeda Application",width,height,backColor_,isfullscreen,monitor_); //初始化window
 				glfwSetFramebufferSizeCallback(window,andromeda::_glfw_framebuffer_size_callback);
 				glfwMakeContextCurrent(window);
 				if(!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) //GLAD的加载要在glfwMakeContextCurrent()之后进行
 					PRINT_MESSAGE("Initialize GLAD failed.")
-				//doubleBuffer=new andromeda::graphics::DoubleFramebuffer(width,height,backColor_);
-				auto b=new andromeda::graphics::Framebuffer(width,height,backColor_);
-				b->setFramebufferWidth(3);
-				//doubleBuffer.alloc();
-				//doubleBuffer.setClearColor(backColor_);
+				new (&doubleFramebuffer) andromeda::graphics::DoubleFramebuffer(width,height,backColor_);
+				doubleFramebuffer.alloc();
 			}
 
 			~Application()
@@ -155,9 +150,9 @@ def_cls_has_func(render_update)
 				isRunning=false;
 			}
 
-			void launch(bool isfullscreen=false,GLFWmonitor* monitor_=glfwGetPrimaryMonitor())
+			void launch()
 			{
-				_initialize(isfullscreen,monitor_);
+				_initialize();
 				mainLoopThread->start();
 				renderFrameRate.init();
 				while(isRunning)
@@ -167,10 +162,10 @@ def_cls_has_func(render_update)
 					if(synchronize_fps)
 						turnMainLoopThread();
 					//渲染
-					doubleBuffer->use();
+					doubleFramebuffer.use();
 					if(andromeda::tmp::is_class<Derived>::result&&has_func(render_update)<void,float>::check<Derived>::result)//如果子类没有render_update()则此调用将优化掉
 						render_update(renderFrameRate.get_tpf());
-					doubleBuffer->swap();
+					doubleFramebuffer.swap();
 					renderFrameRate.calc();
 					if(glfwWindowShouldClose(window))
 						isRunning=false;
@@ -236,6 +231,7 @@ def_cls_has_func(render_update)
 			inline void setBackColor(andromeda::image::ColorRGBA color)
 			{
 				window.setBackColor(color);
+				doubleFramebuffer.setClearColor(color);
 			}
 		};
 	}

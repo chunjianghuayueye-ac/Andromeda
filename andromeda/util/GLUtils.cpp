@@ -1,8 +1,21 @@
 #include "GLUtils.hpp"
 
+#include "../macros/Debug.h"
 #include <string.h>
 
 using namespace andromeda::util;
+
+void andromeda::util::clearOpenGLError()
+{
+	while(glGetError()!=GL_NO_ERROR)
+		;
+}
+
+void andromeda::util::checkOpenGLError()
+{
+	while(GLenum error= glGetError())
+		PRINT_MESSAGE("OpenGL error code:",error)
+}
 
 size_t andromeda::util::getGLTypeSize(GLint type)
 {
@@ -22,15 +35,15 @@ size_t andromeda::util::getGLTypeSize(GLint type)
 	case GL_DOUBLE:
 		return sizeof(double);
 #ifdef GL_2_BYTES
-	case GL_2_BYTES:
+		case GL_2_BYTES:
 		return sizeof(char)*2;
 #endif
 #ifdef GL_3_BYTES
-	case GL_3_BYTES:
+		case GL_3_BYTES:
 		return sizeof(char)*3;
 #endif
 #ifdef GL_4_BYTES
-	case GL_4_BYTES:
+		case GL_4_BYTES:
 		return sizeof(char)*4;
 #endif
 	}
@@ -65,24 +78,24 @@ GLuint andromeda::util::getGLType(const char* str)
 			}
 		break;
 #ifdef GL_2_BYTES
-	case '2':
+		case '2':
 		if(at_least_2_chars)
-			if(*(str+1)=='b')
-				return GL_2_BYTES;
+		if(*(str+1)=='b')
+		return GL_2_BYTES;
 		break;
 #endif
 #ifdef GL_3_BYTES
-	case '3':
+		case '3':
 		if(at_least_2_chars)
-			if(*(str+1)=='b')
-				return GL_3_BYTES;
+		if(*(str+1)=='b')
+		return GL_3_BYTES;
 		break;
 #endif
 #ifdef GL_4_BYTES
-	case '4':
+		case '4':
 		if(at_least_2_chars)
-			if(*(str+1)=='b')
-				return GL_4_BYTES;
+		if(*(str+1)=='b')
+		return GL_4_BYTES;
 		break;
 #endif
 	}

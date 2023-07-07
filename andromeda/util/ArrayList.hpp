@@ -10,32 +10,32 @@ namespace andromeda {
 		class ArrayList
 		{
 		protected:
-			int length,extend_capcity,last;
+			int available_length,extend_capcity,last_element_idx;
 			E* elements;
 		public:
 			ArrayList() :
-					length(0), last(-1), extend_capcity(32), elements(nullptr)
+					available_length(0), last_element_idx(-1), extend_capcity(32), elements(nullptr)
 			{
 			}
 
 			ArrayList(int arr_length) :
-					length(arr_length), last(-1), extend_capcity(arr_length), elements((E*)malloc(sizeof(E)*arr_length))
+					available_length(arr_length), last_element_idx(-1), extend_capcity(arr_length), elements((E*)malloc(sizeof(E)*arr_length))
 			{
 			}
 
 			ArrayList(int arr_length,int arr_extend_capcity) :
-					length(arr_length), last(-1), extend_capcity(arr_extend_capcity), elements((E*)malloc(sizeof(E)*arr_length))
+					available_length(arr_length), last_element_idx(-1), extend_capcity(arr_extend_capcity), elements((E*)malloc(sizeof(E)*arr_length))
 			{
 			}
 
 			ArrayList(ArrayList<E>& arr) :
-					length(arr.length), last(arr.last), extend_capcity(arr.extend_capcity), elements((E*)malloc(sizeof(E)*arr.length))
+					available_length(arr.available_length), last_element_idx(arr.last_element_idx), extend_capcity(arr.extend_capcity), elements((E*)malloc(sizeof(E)*arr.available_length))
 			{
-				memcpy(elements,arr.elements,sizeof(E)*arr.length);
+				memcpy(elements,arr.elements,sizeof(E)*arr.available_length);
 			}
 
 			ArrayList(ArrayList<E>&& arr) :
-					length(arr.length), last(arr.last), extend_capcity(arr.extend_capcity), elements(arr.elements)
+					available_length(arr.available_length), last_element_idx(arr.last_element_idx), extend_capcity(arr.extend_capcity), elements(arr.elements)
 			{
 				arr.elements=nullptr;
 			}
@@ -47,17 +47,17 @@ namespace andromeda {
 
 			void operator=(ArrayList& arr)
 			{
-				length=arr.length;
-				last=arr.last;
+				available_length=arr.available_length;
+				last_element_idx=arr.last_element_idx;
 				extend_capcity=arr.extend_capcity;
-				elements=(E*)malloc(sizeof(E)*arr.length);
-				memcpy(elements,arr.elements,sizeof(E)*arr.length);
+				elements=(E*)malloc(sizeof(E)*arr.available_length);
+				memcpy(elements,arr.elements,sizeof(E)*arr.available_length);
 			}
 
 			void operator=(ArrayList&& arr)
 			{
-				length=arr.length;
-				last=arr.last;
+				available_length=arr.available_length;
+				last_element_idx=arr.last_element_idx;
 				extend_capcity=arr.extend_capcity;
 				elements=arr.elements;
 				arr.elements=nullptr;
@@ -65,26 +65,26 @@ namespace andromeda {
 
 			void add(E& e)
 			{
-				if(last>=length-1)
+				if(last_element_idx>=available_length-1)
 					extendArray(extend_capcity);
-				*(elements+(last++))=e;
+				*(elements+(++last_element_idx))=e;
 			}
 
 			void add(E&& e)
 			{
-				if(last>=length-1)
+				if(last_element_idx>=available_length-1)
 					extendArray(extend_capcity);
-				*(elements+(last++))=e;
+				*(elements+(++last_element_idx))=e;
 			}
 
 			void add(E* es,int num)
 			{
-				START_EXTEND:if(last+num>=length)
+				START_EXTEND:if(last_element_idx+num>=available_length)
 				{
 					extendArray(extend_capcity);
 					goto START_EXTEND;
 				}
-				memcpy(elements+last,es,sizeof(E)*num);
+				memcpy(elements+last_element_idx,es,sizeof(E)*num);
 			}
 
 			void add(E& e1,E& e2)
@@ -112,19 +112,19 @@ namespace andromeda {
 
 			E& remove()
 			{
-				--last;
-				return *(elements+last+1);
+				--last_element_idx;
+				return *(elements+last_element_idx+1);
 			}
 
 			E* remove(int num)
 			{
-				last-=num;
-				return elements+last+1;
+				last_element_idx-=num;
+				return elements+last_element_idx+1;
 			}
 
 			E& getLastElement()
 			{
-				return *(elements+last);
+				return *(elements+last_element_idx);
 			}
 
 			E& get(int index)
@@ -139,17 +139,17 @@ namespace andromeda {
 
 			inline int getAvailableLength() //数组可使用的总长度，包括没有赋值的元素
 			{
-				return length;
+				return available_length;
 			}
 
 			inline int getLastIndex()
 			{
-				return last;
+				return last_element_idx;
 			}
 
 			inline int getLength()//数组实际使用的长度
 			{
-				return last+1;
+				return last_element_idx+1;
 			}
 
 			inline int getExtendCapcity()
@@ -176,10 +176,10 @@ namespace andromeda {
 
 			void extendArray(int extend_cap)
 			{
-				E* tmp=(E*)malloc(sizeof(E)*(length+extend_cap));
-				memcpy(tmp,elements,sizeof(E)*length);
+				E* tmp=(E*)malloc(sizeof(E)*(available_length+extend_cap));
+				memcpy(tmp,elements,sizeof(E)*available_length);
 				free(elements);
-				length+=extend_cap;
+				available_length+=extend_cap;
 				elements=tmp;
 			}
 		};

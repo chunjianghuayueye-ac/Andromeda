@@ -4,12 +4,6 @@
 #include "VertexAttribute.hpp"
 
 using namespace andromeda::graphics;
-using namespace andromeda::image;
-
-Framebuffer::Framebuffer(int width,int height,ColorRGBA clearColor) :
-		width(width), height(height), clearColor(clearColor)
-{
-}
 
 void Framebuffer::alloc(bool try_again)
 {
@@ -33,8 +27,8 @@ void Framebuffer::alloc(bool try_again)
 		glBindFramebuffer(GL_FRAMEBUFFER,0);
 		glBindTexture(GL_TEXTURE_2D,0);
 		glBindRenderbuffer(GL_RENDERBUFFER,0);
-		glGenBuffers(1,&frame_vertex_buffer);
-		glGenBuffers(1,&frame_element_buffer);
+		glGenBuffers(1,&frame_vbo);
+		glGenBuffers(1,&frame_ebo);
 	}
 	allocated=true;
 	if(glCheckFramebufferStatus(GL_FRAMEBUFFER)!=GL_FRAMEBUFFER_COMPLETE)
@@ -97,13 +91,15 @@ void Framebuffer::renderToScreen(float* vertex_arr)
 {
 	glBindFramebuffer(GL_FRAMEBUFFER,0);
 	VertexAttribute& vertex_attrib=VertexAttribute::getDefaultVertexAttribute();
+	//绘制到屏幕，绑定顺序是VAO、VBO、EBO，最后调用glVertexAttribPointer()设置顶点属性的格式
 	vertex_attrib.use();
-	ShaderProgram::getDefaultShaderProgram().use();
-	//绘制到屏幕
-	glBindBuffer(GL_ARRAY_BUFFER,frame_vertex_buffer);
+	glBindBuffer(GL_ARRAY_BUFFER,frame_vbo);
 	glBufferData(GL_ARRAY_BUFFER,4*vertex_attrib.getVertexSize(),vertex_arr,GL_STATIC_DRAW);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,frame_element_buffer);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,frame_ebo);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER,sizeof(full_screen_ndc_vertices_elements),full_screen_ndc_vertices_elements,GL_STATIC_DRAW);
+	vertex_attrib.load();
+	glBindTexture(GL_TEXTURE_2D,color_buffer);
+	ShaderProgram::getDefaultShaderProgram().use();
 	glDrawElements(GL_TRIANGLE_STRIP,4,GL_UNSIGNED_INT,0);
 }
 
