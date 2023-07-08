@@ -1,25 +1,15 @@
 #include "Texture2D.hpp"
 
 using namespace andromeda::graphics;
-using namespace andromeda::image;
-
-Texture2D::Texture2D(RasterImage img) :
-		Texture2D()
-{
-	image=img;
-}
-
-Texture2D::Texture2D(const char* img_path) :
-		Texture2D()
-{
-	image=RasterImage::readImage(img_path);
-}
 
 void Texture2D::load(int level,bool generate_minimap,bool release_image) //Êµ¼Ê¼ÓÔØÍ¼Æ¬½øOpenGLÄÚ´æ£¬¼ÓÔØºóimageµÄÊı¾İ¼´¿ÉÊÍ·Å£¬ĞèÒªÊÖ¶¯µ÷ÓÃreleaseImage();
 {
-	use();
+	if(!texture_id)//texture_id=0²Å¼ÓÔØ
+		return;
 	if(image.getPixelDataPtr())
 	{
+		glGenTextures(1,&texture_id);
+		use();
 		glTexImage2D(GL_TEXTURE_2D,level,GL_RGBA,image.getWidth(),image.getHeight(),0,GL_RGBA,GL_UNSIGNED_BYTE,image);
 		if(generate_minimap)
 			glGenerateMipmap(GL_TEXTURE_2D);
@@ -30,9 +20,12 @@ void Texture2D::load(int level,bool generate_minimap,bool release_image) //Êµ¼Ê¼
 
 void Texture2D::load(int texture_unit,int level,bool generate_minimap,bool release_image)
 {
-	use(texture_unit);
+	if(!texture_id)
+		return;
 	if(image.getPixelDataPtr())
 	{
+		glGenTextures(1,&texture_id);
+		use(texture_unit);
 		glTexImage2D(GL_TEXTURE_2D,level,GL_RGBA,image.getWidth(),image.getHeight(),0,GL_RGBA,GL_UNSIGNED_BYTE,image);
 		if(generate_minimap)
 			glGenerateMipmap(GL_TEXTURE_2D);

@@ -22,6 +22,7 @@ namespace andromeda {
 			int width,height;
 			bool allocated=false;
 			andromeda::image::ColorRGBA clearColor;
+			GLuint frame_vao; //OpenGL的VAO对象，储存了顶点属性、VBO数据缓冲id（没有EBO）
 			GLuint frame_vbo; //用于渲染到屏幕使用
 			GLuint frame_ebo;
 
@@ -96,9 +97,7 @@ namespace andromeda {
 
 			__attribute__((always_inline)) inline void clearAll() //清除所有缓存数据
 			{
-				glClear(GL_DEPTH_BUFFER_BIT);
-				glClear(GL_STENCIL_BUFFER_BIT);
-				glClear(GL_COLOR_BUFFER_BIT);
+				glClear(GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT|GL_COLOR_BUFFER_BIT);
 			}
 
 			__attribute__((always_inline)) inline void clear() //只清除颜色缓冲

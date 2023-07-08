@@ -29,6 +29,7 @@ void Framebuffer::alloc(bool try_again)
 		glBindRenderbuffer(GL_RENDERBUFFER,0);
 		glGenBuffers(1,&frame_vbo);
 		glGenBuffers(1,&frame_ebo);
+		glGenVertexArrays(1,&frame_vao);
 	}
 	allocated=true;
 	if(glCheckFramebufferStatus(GL_FRAMEBUFFER)!=GL_FRAMEBUFFER_COMPLETE)
@@ -91,15 +92,17 @@ void Framebuffer::renderToScreen(float* vertex_arr)
 {
 	glBindFramebuffer(GL_FRAMEBUFFER,0);
 	VertexAttribute& vertex_attrib=VertexAttribute::getDefaultVertexAttribute();
-	//绘制到屏幕，绑定顺序是VAO、VBO、EBO，最后调用glVertexAttribPointer()设置顶点属性的格式
-	vertex_attrib.use();
+	//绘制到屏幕，绑定顺序是VAO、VBO，最后调用glVertexAttribPointer()设置顶点属性的格式
+	glBindVertexArray(frame_vao);
 	glBindBuffer(GL_ARRAY_BUFFER,frame_vbo);
 	glBufferData(GL_ARRAY_BUFFER,4*vertex_attrib.getVertexSize(),vertex_arr,GL_STATIC_DRAW);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,frame_ebo);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER,sizeof(full_screen_ndc_vertices_elements),full_screen_ndc_vertices_elements,GL_STATIC_DRAW);
-	vertex_attrib.load();
+	vertex_attrib.load(&frame_vao);
+	glDisable(GL_DEPTH_TEST);
 	glBindTexture(GL_TEXTURE_2D,color_buffer);
 	ShaderProgram::getDefaultShaderProgram().use();
+	glClear(GL_COLOR_BUFFER_BIT);
 	glDrawElements(GL_TRIANGLE_STRIP,4,GL_UNSIGNED_INT,0);
 }
 

@@ -62,7 +62,7 @@ namespace andromeda {
 				}
 			};
 		private:
-			GLuint vertex_array_object; //OpenGL的VAO对象，储存了顶点属性、VBO数据缓冲id（没有EBO）
+			//不储存OpenGL的VAO对象，VAO对象与渲染对象是一一对应的，本类只储存顶点属性格式
 			size_t vertex_size=0;
 			andromeda::util::ArrayList<VertexAttributeInfo> attribs;
 			static VertexAttribute* default_vertex_attribute;
@@ -74,10 +74,6 @@ namespace andromeda {
 				setAttribute(attrib_info);
 			}
 
-			operator GLuint()
-			{
-				return vertex_array_object;
-			}
 			/*用于指定顶点格式，用法"顶点名称1:3f,顶点名称2:n3f,顶点名称3:2f...."
 			 * 顶点名称便于记忆，顺序表示顶点属性序号，从0开始，例如顶点名称1为属性0，顶点名称2为属性1...
 			 * n表示normalized，不加则表示不规范化。后面加数字表示数据个数（必须是1-4），最后是类型名称，类型名称定义如下
@@ -85,15 +81,9 @@ namespace andromeda {
 			 */
 			void setAttribute(const char* attrib_str="position:3f,vertex_color:4f,texture_coord:2f");
 
-			__attribute__((always_inline)) inline void use() //在绑定、操作VBO之前调用
+			__attribute__((always_inline)) inline void load(GLuint* vao) //在glBindBuffer()后、glDraw*()前调用，用于把顶点属性格式装载进指定的VAO中
 			{
-				glDeleteVertexArrays(1,&vertex_array_object);
-				glGenVertexArrays(1,&vertex_array_object);
-				glBindVertexArray(vertex_array_object);
-			}
-
-			__attribute__((always_inline)) inline void load() //在glBindBuffer()后、glDraw*()前调用
-			{
+				glBindVertexArray(*vao);
 				for(int i=0;i<attribs.getLength();++i)
 				{
 					VertexAttribute::VertexAttributeInfo& attrib=attribs[i];
