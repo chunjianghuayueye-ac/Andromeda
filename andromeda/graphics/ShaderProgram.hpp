@@ -2,6 +2,8 @@
 #define ANDROMEDA_GRAPHICS_SHADERPROGRAM
 
 #include "../../lib/opengl/glad/glad.h"
+#include "../math/Vector.hpp"
+#include "../math/Matrix.hpp"
 
 namespace andromeda {
 	namespace graphics {
@@ -57,7 +59,7 @@ namespace andromeda {
 				return checkShaderProgram(shader_program,print_log);
 			}
 
-			__attribute__((always_inline)) static inline ShaderProgram& getDefaultShaderProgram() //获取默认着色程序
+			__attribute__((always_inline))   static inline ShaderProgram& getDefaultShaderProgram() //获取默认着色程序
 			{
 				if(!default_shader_program)
 					default_shader_program=new ShaderProgram(pass_vertex_shader,default_fragment_shader);
@@ -71,8 +73,10 @@ namespace andromeda {
 			void setIntArray(const char* name,int count,int* value_arr);
 			void setUnsignedIntArray(const char* name,int count,unsigned int* value_arr);
 			void setFloatArray(const char* name,int count,float* value_arr);
-			void setMatrix4fv(const char* name,int count,bool transpose,const float* value);
+			void setMatrix4x4fArray(const char* name,int count,bool transpose,const float* value);
 			void setBool(const char* name,bool value); //调用setUnsignedInt设置为0或1
+			void setVector3f(const char* name,andromeda::math::Vector3f vec3);
+			void setMatrix3x3f(const char* name,andromeda::math::Matrix3x3f mat3,bool transpose=false);
 
 			//适用于频繁设置变量值，使用前使用use()设定着色器后才可以调用set()和setArray()
 			class Variable
@@ -125,6 +129,16 @@ namespace andromeda {
 				inline void setArray(int count,float* value_arr)
 				{
 					glUniform1fv(var_loc,count,value_arr);
+				}
+
+				inline void setVector(andromeda::math::Vector3f vec3)
+				{
+					glUniform1fv(var_loc,3,(const GLfloat*)&vec3);
+				}
+
+				inline void setMatrix(andromeda::math::Matrix3x3f mat3,bool transpose=false)
+				{
+					glUniformMatrix3fv(var_loc,1,transpose,(const GLfloat*)&mat3);
 				}
 			};
 

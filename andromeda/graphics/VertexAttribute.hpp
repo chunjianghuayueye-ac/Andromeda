@@ -65,7 +65,7 @@ namespace andromeda {
 			//不储存OpenGL的VAO对象，VAO对象与渲染对象是一一对应的，本类只储存顶点属性格式
 			size_t vertex_size=0;
 			andromeda::util::ArrayList<VertexAttributeInfo> attribs;
-			static VertexAttribute* default_vertex_attribute;
+			static VertexAttribute* default_vertex_attributes;
 		public:
 			VertexAttribute()=default;
 
@@ -104,11 +104,11 @@ namespace andromeda {
 				return vertex_size;
 			}
 
-			static inline VertexAttribute& getDefaultVertexAttribute()
+			static inline VertexAttribute& getDefaultVertexAttributes()
 			{
-				if(!default_vertex_attribute)
-					default_vertex_attribute=new VertexAttribute("position:3f,vertex_color:4f,texture_coord:2f");
-				return *default_vertex_attribute;
+				if(!default_vertex_attributes)
+					default_vertex_attributes=new VertexAttribute("position:3f,vertex_color:4f,texture_coord:2f");
+				return *default_vertex_attributes;
 			}
 		};
 	}

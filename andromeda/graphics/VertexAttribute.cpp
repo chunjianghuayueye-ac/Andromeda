@@ -41,4 +41,4 @@ VertexAttribute::VertexAttributeInfo VertexAttribute::getVertexAttributeInfo(con
 	return VertexAttribute::VertexAttributeInfo(); //Œﬁ–ß≤È—Ø
 }
 
-VertexAttribute* VertexAttribute::default_vertex_attribute=nullptr;
+VertexAttribute* VertexAttribute::default_vertex_attributes=nullptr;

@@ -11,7 +11,7 @@ namespace andromeda {
 		private:
 			GLuint texture_id=0; //load()加载后texture_id即不为0
 			andromeda::image::RasterImage image;
-			static int max_texture_unit=0; //OpenGL支持的最大纹理单元数目，0表示未初始化
+			static int max_texture_unit; //OpenGL支持的最大纹理单元数目，0表示未初始化
 		public:
 			__attribute__((always_inline)) operator GLuint()
 			{
@@ -44,12 +44,12 @@ namespace andromeda {
 
 			__attribute__((always_inline)) inline int getWidth()
 			{
-				return image.width;
+				return image.getWidth();
 			}
 
 			__attribute__((always_inline)) inline int getHeight()
 			{
-				return image.height;
+				return image.getHeight();
 			}
 
 			__attribute__((always_inline)) inline void setImage(andromeda::image::RasterImage img)
@@ -67,7 +67,7 @@ namespace andromeda {
 				image.release();
 			}
 
-			__attribute__((always_inline))    inline Texture2D& setParameter(GLint para_name,GLint para_value) //设置之前先调用use()
+			__attribute__((always_inline))     inline Texture2D& setParameter(GLint para_name,GLint para_value) //设置之前先调用use()
 			{
 				glTexParameteri(GL_TEXTURE_2D,para_name,para_value);
 				return *this;

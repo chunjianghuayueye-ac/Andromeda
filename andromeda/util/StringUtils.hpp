@@ -1,7 +1,6 @@
 #ifndef ANDROMEDA_UTIL_STRINGUTILS
 #define ANDROMEDA_UTIL_STRINGUTILS
 
-#include <string.h>
 #include "ArrayList.hpp"
 
 namespace andromeda {
@@ -14,6 +13,8 @@ namespace andromeda {
 		extern ArrayList<const char*>split(const char* str,const char* delim); //编译器将优化，直接在调用处构造返回值。释放返回值中的所有字符串时只需调用free(arr[0])！
 
 		extern const char* str_cpy(const char* str); //拷贝字符串
+		extern const char* str_arr_join(const char** str_arr,int count);//把含有count个字符串的数组合并为一个字符串
+
 		extern const char* str_join(const char* str1,const char* str2);
 		extern const char* str_join(const char* str1,int num);
 		extern const char* str_join(int num,const char* str1);

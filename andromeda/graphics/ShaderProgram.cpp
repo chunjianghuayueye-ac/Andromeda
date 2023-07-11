@@ -2,6 +2,7 @@
 #include "../macros/Debug.h"
 
 using namespace andromeda::graphics;
+using namespace andromeda::math;
 
 ShaderProgram::ShaderProgram(GLuint shader_program,GLuint vertex_shader,GLuint fragment_shader) :
 		shader_program(shader_program), vertex_shader(vertex_shader), fragment_shader(fragment_shader)
@@ -174,6 +175,13 @@ void ShaderProgram::setBool(const char* name,bool value)
 	glUseProgram(last_shader_program);
 }
 
+void ShaderProgram::setVector3f(const char* name,Vector3f vec3)
+{
+	GLuint last_shader_program=use_ret(); //使用glUniform*更新变量值之前必须使用该着色器
+	glUniform1fv(glGetUniformLocation(shader_program,name),3,(const GLfloat*)&vec3);
+	glUseProgram(last_shader_program);
+}
+
 void ShaderProgram::setFloat(const char* name,float value)
 {
 	GLuint last_shader_program=use_ret(); //使用glUniform*更新变量值之前必须使用该着色器
@@ -202,10 +210,17 @@ void ShaderProgram::setFloatArray(const char* name,int count,float* value_arr)
 	glUseProgram(last_shader_program);
 }
 
-void ShaderProgram::setMatrix4fv(const char* name,int count,bool transpose,const float* value)
+void ShaderProgram::setMatrix4x4fArray(const char* name,int count,bool transpose,const float* value)
 {
 	GLuint last_shader_program=use_ret(); //使用glUniform*更新变量值之前必须使用该着色器
 	glUniformMatrix4fv(glGetUniformLocation(shader_program,name),count,transpose,value);
+	glUseProgram(last_shader_program);
+}
+
+void ShaderProgram::setMatrix3x3f(const char* name,Matrix3x3f mat3,bool transpose)
+{
+	GLuint last_shader_program=use_ret(); //使用glUniform*更新变量值之前必须使用该着色器
+	glUniformMatrix3fv(glGetUniformLocation(shader_program,name),1,transpose,(const GLfloat*)&mat3);
 	glUseProgram(last_shader_program);
 }
 
