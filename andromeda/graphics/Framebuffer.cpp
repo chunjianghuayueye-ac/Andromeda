@@ -5,7 +5,7 @@
 
 using namespace andromeda::graphics;
 
-void Framebuffer::alloc(bool try_again)
+bool Framebuffer::alloc(bool try_again)
 {
 	bool tried=false; //是否已尝试重新分配
 	ALLOC:if((!tried)&&allocated)
@@ -35,13 +35,17 @@ void Framebuffer::alloc(bool try_again)
 	if(glCheckFramebufferStatus(GL_FRAMEBUFFER)!=GL_FRAMEBUFFER_COMPLETE)
 	{
 		if((!try_again)||tried)
+		{
 			PRINT_MESSAGE("Framebuffer initialize failed.")
+			return false;
+		}
 		else
 		{
 			tried=true;
 			goto ALLOC;
 		}
 	}
+	return true;
 }
 
 GLuint Framebuffer::getFramebufferTexture(GLuint dest_frame_buffer,int texture_attachment) //传入颜色缓冲序号
@@ -91,20 +95,20 @@ GLuint Framebuffer::use_ret()
 void Framebuffer::renderToScreen(float* vertex_arr)
 {
 	glBindFramebuffer(GL_FRAMEBUFFER,0);
-	VertexAttribute& vertex_attribs=VertexAttribute::getDefaultVertexAttributes();
-	//绘制到屏幕，绑定顺序是VAO、VBO，最后调用glVertexAttribPointer()设置顶点属性的格式
+	VertexAttribute& vertex_attribs=VertexAttribute::getDefaultPTVertexAttributes();
+	//绘制到屏幕，绑定顺序是VAO、VBO、EBO，最后调用glVertexAttribPointer()设置顶点属性的格式
 	glBindVertexArray(frame_vao);
 	glBindBuffer(GL_ARRAY_BUFFER,frame_vbo);
 	glBufferData(GL_ARRAY_BUFFER,4*vertex_attribs.getVertexSize(),vertex_arr,GL_STATIC_DRAW);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,frame_ebo);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER,sizeof(full_screen_ndc_vertices_elements),full_screen_ndc_vertices_elements,GL_STATIC_DRAW);
-	vertex_attribs.load(&frame_vao);
+	vertex_attribs.load(frame_vao);
 	glDisable(GL_DEPTH_TEST);
 	glBindTexture(GL_TEXTURE_2D,color_buffer);
-	ShaderProgram::getDefaultShaderProgram().use();
+	ShaderProgram::getPTDefaultShaderProgram().use();
 	glClear(GL_COLOR_BUFFER_BIT);
 	glDrawElements(GL_TRIANGLE_STRIP,4,GL_UNSIGNED_INT,0);
 }
 
-float Framebuffer::full_screen_ndc_vertices_data[]={-1.0f,-1.0f,0.0f,1.0f,1.0f,1.0f,1.0f,0.0f,0.0f,-1.0f,1.0f,0.0f,1.0f,1.0f,1.0f,1.0f,0.0f,1.0f,1.0f,-1.0f,0.0f,1.0f,1.0f,1.0f,1.0f,1.0f,0.0f,1.0f,1.0f,0.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f};
+float Framebuffer::full_screen_ndc_vertices_data[]={-1.0f,-1.0f,0.0f,0.0f,0.0f,-1.0f,1.0f,0.0f,0.0f,1.0f,1.0f,-1.0f,0.0f,1.0f,0.0f,1.0f,1.0f,0.0f,1.0f,1.0f};
 unsigned int Framebuffer::full_screen_ndc_vertices_elements[4]={0,1,2,3};

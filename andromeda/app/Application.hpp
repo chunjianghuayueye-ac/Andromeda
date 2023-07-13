@@ -147,7 +147,7 @@ def_cls_has_func(render_update)
 
 			void exit()
 			{
-				isRunning=false;
+				glfwSetWindowShouldClose(window,true);
 			}
 
 			void launch()

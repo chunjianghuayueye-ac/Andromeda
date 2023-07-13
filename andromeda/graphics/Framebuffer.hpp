@@ -3,6 +3,7 @@
 
 #include "../../lib/opengl/glad/glad.h"
 #include "../image/ColorRGBA.hpp"
+#include "ShaderProgram.hpp"
 
 //BUFFER_SIZE宏用于得到分配内存使用的实际尺寸，在Mac OS上尺寸要乘以2
 #ifdef __APPLE__
@@ -22,7 +23,7 @@ namespace andromeda {
 			int width,height;
 			bool allocated=false;
 			andromeda::image::ColorRGBA clearColor;
-			GLuint frame_vao; //OpenGL的VAO对象，储存了顶点属性、VBO数据缓冲id（没有EBO）
+			GLuint frame_vao; //OpenGL的VAO对象，储存了顶点属性、VBO、EBO数据缓冲id
 			GLuint frame_vbo; //用于渲染到屏幕使用
 			GLuint frame_ebo;
 
@@ -74,6 +75,7 @@ namespace andromeda {
 			{
 				return height;
 			}
+
 			//OpenGL的查询代价高昂，应当尽量避免查询
 			static GLuint getCurrentFramebuffer()
 			{
@@ -105,7 +107,7 @@ namespace andromeda {
 				glClear(GL_COLOR_BUFFER_BIT);
 			}
 
-			void alloc(bool try_again=true); //分配内存，需要在使用前最先调用。try_again用于分配失败时是否重新分配一次
+			bool alloc(bool try_again=true); //分配内存，需要在使用前最先调用。try_again用于分配失败时是否重新分配一次，返回值为分配是否成功
 			GLuint use_ret(); //调用后将渲染到该Framebuffer对象上，返回之前绑定的Framebuffer的id
 			void copyColorBuffer(GLuint dest_frame_buffer,int color_buffer_attachment=0); //将本帧缓冲拷贝到另一个帧缓存上。dest_frame_buffer=0则拷贝进屏幕缓冲，此时color_buffer_attachment参数无用
 

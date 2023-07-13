@@ -54,7 +54,7 @@ namespace andromeda {
 			{
 				shader->use();
 				shader->setVector3f("position",instance->position);
-				shader->setMatrix3x3f("linear_transform",*(instance->linear_transform));
+				shader->setMatrix3x3f("linear_transform",instance->linear_transform);
 				use();
 				if(ebo)
 					glDrawElements(draw_strategy,element_count,GL_UNSIGNED_INT,0);
@@ -68,9 +68,9 @@ namespace andromeda {
 			void loadData(); //加载顶点数据以及索引数据（如果有的话）进OpenGL，并设置好vertex_attribs对应的顶点属性格式
 
 			template<typename ...Textures>
-			inline void addTextures(Textures ... more_textures) //必须全部传入Texture2D类型的对象
+			inline void addTextures(Textures ... _textures) //必须全部传入Texture2D类型的对象
 			{
-				textures.add(more_textures...);
+				textures.add(_textures...);
 			}
 		};
 	}

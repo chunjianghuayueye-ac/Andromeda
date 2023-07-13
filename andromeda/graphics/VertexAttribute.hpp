@@ -65,7 +65,8 @@ namespace andromeda {
 			//不储存OpenGL的VAO对象，VAO对象与渲染对象是一一对应的，本类只储存顶点属性格式
 			size_t vertex_size=0;
 			andromeda::util::ArrayList<VertexAttributeInfo> attribs;
-			static VertexAttribute* default_vertex_attributes;
+			static VertexAttribute* default_pct_vertex_attributes;//p=position,c=color,t=texture coord
+			static VertexAttribute* default_pt_vertex_attributes;//p=position,t=texture coord
 		public:
 			VertexAttribute()=default;
 
@@ -81,9 +82,9 @@ namespace andromeda {
 			 */
 			void setAttribute(const char* attrib_str="position:3f,vertex_color:4f,texture_coord:2f");
 
-			__attribute__((always_inline)) inline void load(GLuint* vao) //在glBindBuffer()后、glDraw*()前调用，用于把顶点属性格式装载进指定的VAO中
+			__attribute__((always_inline)) inline void load(GLuint vao) //在glBindBuffer()后、glDraw*()前调用，用于把顶点属性格式装载进指定的VAO中
 			{
-				glBindVertexArray(*vao);
+				glBindVertexArray(vao);
 				for(int i=0;i<attribs.getLength();++i)
 				{
 					VertexAttribute::VertexAttributeInfo& attrib=attribs[i];
@@ -104,11 +105,18 @@ namespace andromeda {
 				return vertex_size;
 			}
 
-			static inline VertexAttribute& getDefaultVertexAttributes()
+			static inline VertexAttribute& getDefaultPCTVertexAttributes()
 			{
-				if(!default_vertex_attributes)
-					default_vertex_attributes=new VertexAttribute("position:3f,vertex_color:4f,texture_coord:2f");
-				return *default_vertex_attributes;
+				if(!default_pct_vertex_attributes)
+					default_pct_vertex_attributes=new VertexAttribute("position:3f,vertex_color:4f,texture_coord:2f");
+				return *default_pct_vertex_attributes;
+			}
+
+			static inline VertexAttribute& getDefaultPTVertexAttributes()
+			{
+				if(!default_pt_vertex_attributes)
+					default_pt_vertex_attributes=new VertexAttribute("position:3f,texture_coord:2f");
+				return *default_pt_vertex_attributes;
 			}
 		};
 	}

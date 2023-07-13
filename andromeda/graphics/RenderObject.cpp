@@ -29,5 +29,5 @@ void RenderObject::loadData()
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,ebo);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER,sizeof(unsigned int)*element_count,element_data,GL_STATIC_DRAW);
 	}
-	vertex_attribs->load(&vao);
+	vertex_attribs->load(vao);
 }

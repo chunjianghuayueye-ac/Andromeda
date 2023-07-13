@@ -7,15 +7,18 @@
 
 namespace andromeda {
 	namespace graphics {
-		extern const char* pass_vertex_shader;
-		extern const char* default_fragment_shader;
+		extern const char* pct_pass_vertex_shader;
+		extern const char* pct_default_fragment_shader;
+		extern const char* pt_pass_vertex_shader;
+		extern const char* pt_default_fragment_shader;
 		class ShaderProgram
 		{
 		private:
 			GLuint shader_program=0,vertex_shader=0,fragment_shader=0;
 			const char* vertex_shader_source=nullptr;
 			const char* fragment_shader_source=nullptr;
-			static ShaderProgram* default_shader_program;
+			static ShaderProgram* pct_default_shader_program;
+			static ShaderProgram* pt_default_shader_program;
 
 			ShaderProgram(GLuint shader_program);
 			ShaderProgram(GLuint shader_program,GLuint vertex_shader,GLuint fragment_shader);
@@ -25,10 +28,10 @@ namespace andromeda {
 				return shader_program;
 			}
 
-			ShaderProgram(const char* vertex_shader_source=pass_vertex_shader,const char* fragment_shader_source=default_fragment_shader);
+			ShaderProgram(const char* vertex_shader_source=pct_pass_vertex_shader,const char* fragment_shader_source=pct_default_fragment_shader);
 			//编译、链接失败则不改变shader_program,vertex_shader,fragment_shader的值
-			bool setVertexShader(const char* vertex_shader_source=pass_vertex_shader); //当着色器都编译完成后将自动链接，返回值为当前程序状态，true表示无错误，false表示有错误不可用（编译错误或链接错误）
-			bool setFragmentShader(const char* fragment_shader_source=default_fragment_shader);
+			bool setVertexShader(const char* vertex_shader_source=pct_pass_vertex_shader); //当着色器都编译完成后将自动链接，返回值为当前程序状态，true表示无错误，false表示有错误不可用（编译错误或链接错误）
+			bool setFragmentShader(const char* fragment_shader_source=pct_default_fragment_shader);
 			bool setVertexShader(GLuint vertex_shader); //设置已经编译好的着色器，如果checkVertexShader()返回false说明着色器实际上有错，则该函数返回false。程序链接失败也返回false
 			bool setFragmentShader(GLuint fragment_shader);
 			bool linkProgram(bool release_shader=true); //通常不需要调用，可以自动链接，成功则返回true。release_shader决定如果链接成功是否释放已经编译的着色器资源，默认释放资源
@@ -59,11 +62,18 @@ namespace andromeda {
 				return checkShaderProgram(shader_program,print_log);
 			}
 
-			__attribute__((always_inline))   static inline ShaderProgram& getDefaultShaderProgram() //获取默认着色程序
+			__attribute__((always_inline))  static inline ShaderProgram& getPCTDefaultShaderProgram() //获取默认着色程序
 			{
-				if(!default_shader_program)
-					default_shader_program=new ShaderProgram(pass_vertex_shader,default_fragment_shader);
-				return *default_shader_program;
+				if(!pct_default_shader_program)
+					pct_default_shader_program=new ShaderProgram(pct_pass_vertex_shader,pct_default_fragment_shader);
+				return *pct_default_shader_program;
+			}
+
+			__attribute__((always_inline))  static inline ShaderProgram& getPTDefaultShaderProgram() //获取默认着色程序
+			{
+				if(!pt_default_shader_program)
+					pt_default_shader_program=new ShaderProgram(pct_pass_vertex_shader,pct_default_fragment_shader);
+				return *pt_default_shader_program;
 			}
 
 			//适用于偶尔设置变量值（glGetUniformLocation查询代价高昂避免循环调用！），设置前后不改变当前着色器程序
@@ -76,7 +86,8 @@ namespace andromeda {
 			void setMatrix4x4fArray(const char* name,int count,bool transpose,const float* value);
 			void setBool(const char* name,bool value); //调用setUnsignedInt设置为0或1
 			void setVector3f(const char* name,andromeda::math::Vector3f vec3);
-			void setMatrix3x3f(const char* name,andromeda::math::Matrix3x3f mat3,bool transpose=false);
+			void setMatrix3x3f(const char* name,andromeda::math::Matrix3x3f& mat3,bool transpose=false);
+			void setMatrix3x3f(const char* name,andromeda::math::Matrix3x3f* mat3,bool transpose=false);
 
 			//适用于频繁设置变量值，使用前使用use()设定着色器后才可以调用set()和setArray()
 			class Variable
@@ -136,9 +147,14 @@ namespace andromeda {
 					glUniform1fv(var_loc,3,(const GLfloat*)&vec3);
 				}
 
-				inline void setMatrix(andromeda::math::Matrix3x3f mat3,bool transpose=false)
+				inline void setMatrix(andromeda::math::Matrix3x3f& mat3,bool transpose=false)
 				{
 					glUniformMatrix3fv(var_loc,1,transpose,(const GLfloat*)&mat3);
+				}
+
+				inline void setMatrix(andromeda::math::Matrix3x3f* mat3,bool transpose=false)
+				{
+					glUniformMatrix3fv(var_loc,1,transpose,(const GLfloat*)mat3);
 				}
 			};
 

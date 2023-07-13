@@ -4,6 +4,9 @@
 using namespace andromeda::graphics;
 using namespace andromeda::math;
 
+ShaderProgram* ShaderProgram::pct_default_shader_program=nullptr;
+ShaderProgram* ShaderProgram::pt_default_shader_program=nullptr;
+
 ShaderProgram::ShaderProgram(GLuint shader_program,GLuint vertex_shader,GLuint fragment_shader) :
 		shader_program(shader_program), vertex_shader(vertex_shader), fragment_shader(fragment_shader)
 {
@@ -217,19 +220,24 @@ void ShaderProgram::setMatrix4x4fArray(const char* name,int count,bool transpose
 	glUseProgram(last_shader_program);
 }
 
-void ShaderProgram::setMatrix3x3f(const char* name,Matrix3x3f mat3,bool transpose)
+void ShaderProgram::setMatrix3x3f(const char* name,Matrix3x3f& mat3,bool transpose)
 {
 	GLuint last_shader_program=use_ret(); //使用glUniform*更新变量值之前必须使用该着色器
 	glUniformMatrix3fv(glGetUniformLocation(shader_program,name),1,transpose,(const GLfloat*)&mat3);
 	glUseProgram(last_shader_program);
 }
 
-ShaderProgram* ShaderProgram::default_shader_program=nullptr;
+void ShaderProgram::setMatrix3x3f(const char* name,Matrix3x3f* mat3,bool transpose)
+{
+	GLuint last_shader_program=use_ret(); //使用glUniform*更新变量值之前必须使用该着色器
+	glUniformMatrix3fv(glGetUniformLocation(shader_program,name),1,transpose,(const GLfloat*)mat3);
+	glUseProgram(last_shader_program);
+}
 
 namespace andromeda {
 	namespace graphics {
 		//传递顶点着色器
-		const char* pass_vertex_shader="#version 330 core\n\
+		const char* pct_pass_vertex_shader="#version 330 core\n\
 										layout (location=0) in vec3 vertex_position;\n\
 										layout (location=1) in vec4 vertex_color;\n\
 										layout (location=2) in vec2 vertex_texture_coord;\n\
@@ -242,7 +250,7 @@ namespace andromeda {
 											texture_coord=vertex_texture_coord;\n\
 										}";
 		//默认片段着色器
-		const char* default_fragment_shader="#version 330 core\n\
+		const char* pct_default_fragment_shader="#version 330 core\n\
 											in vec4 color;\n\
 											in vec2 texture_coord;\n\
 											out vec4 fragment_color;\n\
@@ -250,6 +258,26 @@ namespace andromeda {
 											void main()\n\
 											{\n\
 												fragment_color=texture(texture_2d,texture_coord)*color;\n\
+											}";
+
+		//Framebuffer传递顶点着色器
+		const char* pt_pass_vertex_shader="#version 330 core\n\
+										layout (location=0) in vec3 vertex_position;\n\
+										layout (location=2) in vec2 vertex_texture_coord;\n\
+										out vec2 texture_coord;\n\
+										void main()\n\
+										{\n\
+											gl_Position=vec4(position,1.0);\n\
+											texture_coord=vertex_texture_coord;\n\
+										}";
+		//Framebuffer默认片段着色器
+		const char* pt_default_fragment_shader="#version 330 core\n\
+											in vec2 texture_coord;\n\
+											out vec4 fragment_color;\n\
+											uniform sampler2D texture_2d;\n\
+											void main()\n\
+											{\n\
+												fragment_color=texture(texture_2d,texture_coord);\n\
 											}";
 	}
 }
